@@ -3,13 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Thanksgiving Stop Motion Studio</title>
-    <!-- Tailwind CSS for responsive, kid-friendly UI -->
-    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <!-- Tone.js for synthesized sound effects without external audio URLs -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    <!-- Kid-friendly rounded fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <title>Thanksgiving Stop Motion Animation Studio</title>
     <style>
         :root {
             color-scheme: light;
@@ -17,13 +11,20 @@
             padding-top: env(safe-area-inset-top, 0px);
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
+        *, *::before, *::after {
+            box-sizing: inherit;
+        }
         html {
             scroll-padding-top: env(safe-area-inset-top, 0px);
+            font-size: 16px;
         }
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Trebuchet MS', 'Comic Sans MS', 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: #FFF8EB;
             background-image: radial-gradient(#FDE68A 2px, transparent 2px);
             background-size: 32px 32px;
@@ -32,25 +33,27 @@
             -webkit-user-select: none;
             overflow-x: hidden;
         }
-        img {
-            max-width: 100%;
-        }
-        [hidden]:not([hidden="until-found"]) {
-            display: none !important;
-        }
+        img { max-width: 100%; }
+        [hidden]:not([hidden="until-found"]) { display: none !important; }
         input, textarea {
             user-select: text;
             -webkit-user-select: text;
+            font-family: inherit;
         }
 
         h1, h2, h3, .kid-font {
-            font-family: 'Fredoka', sans-serif;
+            font-family: 'Trebuchet MS', 'Segoe UI Rounded', 'Arial Rounded MT Bold', system-ui, sans-serif;
+            margin: 0;
         }
+        p { margin: 0; }
 
         /* Big tap targets for small hands */
         button {
             min-height: 44px;
             min-width: 44px;
+            border: none;
+            font-family: inherit;
+            cursor: pointer;
         }
         button:focus-visible, input:focus-visible, textarea:focus-visible {
             outline: 3px solid #1D4ED8;
@@ -60,33 +63,59 @@
             opacity: 0.45;
             cursor: not-allowed;
         }
-        .border-3 {
-            border-width: 3px;
-        }
 
-        /* Skin tone swatches have custom compact touch sizing inside grid/flex rows */
-        .skin-swatch {
-            min-height: 36px;
-            min-width: 36px;
-            transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
+        /* Header */
+        .app-header {
+            background: linear-gradient(90deg, #F59E0B 0%, #F97316 50%, #EF4444 100%);
+            color: #FFFFFF;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+            border-bottom: 4px solid #B45309;
         }
-        .skin-swatch:hover {
-            transform: scale(1.12);
+        .header-inner {
+            max-width: 80rem;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
         }
-        .skin-swatch.active {
-            transform: scale(1.14);
-            box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 6px #EA580C;
+        .brand-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
-
-        /* Custom Scrollbar for Filmstrip & Stickers */
-        ::-webkit-scrollbar { height: 10px; width: 10px; }
-        ::-webkit-scrollbar-track { background: #FEF3C7; border-radius: 999px; }
-        ::-webkit-scrollbar-thumb { background: #F59E0B; border-radius: 999px; border: 2px solid #FEF3C7; }
-        ::-webkit-scrollbar-thumb:hover { background: #D97706; }
+        .brand-logo {
+            background: #FFFFFF;
+            font-size: 1.875rem;
+            padding: 0.5rem;
+            border-radius: 1rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: rotate(-3deg);
+            line-height: 1;
+        }
+        .brand-title {
+            font-size: clamp(1.2rem, 2.5vw, 1.85rem);
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 4px rgba(120, 53, 15, 0.35);
+        }
+        .brand-subtitle {
+            font-size: 0.85rem;
+            color: #FEF3C7;
+            font-weight: 700;
+        }
+        .header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
         /* Bouncy Kid-Friendly Button Effects */
         .btn-bounce {
-            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, background-color 0.15s ease;
         }
         .btn-bounce:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); }
         .btn-bounce:active:not(:disabled) { transform: translateY(2px) scale(0.96); }
@@ -95,15 +124,584 @@
             .sound-playing { animation: none !important; }
         }
 
-        /* Stage: every size inside is a fraction of the stage width, so the
-           editor, the movie screen and the thumbnails all look the same. */
+        /* Button Variants */
+        .btn-amber-light {
+            background: #FEF3C7;
+            color: #78350F;
+            font-weight: 800;
+            padding: 0.5rem 0.9rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            border-bottom: 4px solid #FCD34D;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.92rem;
+        }
+        .btn-amber-light:hover:not(:disabled) { background: #FFFFFF; }
+        .btn-amber-light.ring-active {
+            box-shadow: 0 0 0 4px #FFFFFF, 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        .btn-sky-light {
+            background: #E0F2FE;
+            color: #0C4A6E;
+            font-weight: 800;
+            padding: 0.5rem 0.9rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            border-bottom: 4px solid #7DD3FC;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.92rem;
+        }
+        .btn-sky-light:hover:not(:disabled) { background: #FFFFFF; }
+
+        .btn-emerald-main {
+            background: #10B981;
+            color: #FFFFFF;
+            font-weight: 900;
+            padding: 0.6rem 1.25rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 10px rgba(6, 95, 70, 0.25);
+            border-bottom: 4px solid #047857;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.05rem;
+        }
+        .btn-emerald-main:hover:not(:disabled) { background: #34D399; }
+
+        /* Main Workspace Grid */
+        .workspace {
+            flex: 1;
+            max-width: 80rem;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+        @media (min-width: 1024px) {
+            .workspace {
+                grid-template-columns: 4fr 8fr;
+                padding: 1.25rem;
+            }
+        }
+
+        /* Left Toolbox */
+        .toolbox-card {
+            min-width: 0;
+            background: #FFFFFF;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            box-shadow: 0 8px 20px rgba(146, 64, 14, 0.1);
+            border: 4px solid #FDE68A;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .tab-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            background: #FEF3C7;
+            padding: 0.375rem;
+            border-radius: 1rem;
+        }
+        .tab-btn {
+            font-weight: 800;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            transition: all 0.15s ease;
+            background: transparent;
+            color: #92400E;
+        }
+        .tab-btn:hover:not(.active) { background: rgba(253, 230, 138, 0.65); }
+        .tab-btn.active {
+            background: #F59E0B;
+            color: #FFFFFF;
+            box-shadow: 0 2px 5px rgba(180, 83, 9, 0.25);
+        }
+
+        .tab-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+        .tab-panel.hidden { display: none; }
+
+        .panel-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            font-weight: 800;
+            color: #92400E;
+        }
+        .pill-count {
+            font-size: 0.75rem;
+            background: #FEF3C7;
+            color: #B45309;
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+        }
+
+        /* Pilgrim Skin Picker */
+        .skin-box {
+            background: #FFFBEB;
+            border: 2px solid #FDE68A;
+            border-radius: 1rem;
+            padding: 0.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .skin-box.selected-variant {
+            background: #FFF7ED;
+            border-color: #FDBA74;
+            margin-bottom: 0.6rem;
+        }
+        .skin-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .skin-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #78350F;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .skin-badge {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #C2410C;
+            background: #FFEDD5;
+            padding: 0.125rem 0.5rem;
+            border-radius: 999px;
+        }
+        .swatch-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.35rem;
+        }
+        .skin-swatch {
+            min-height: 36px;
+            min-width: 36px;
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            border: 2px solid rgba(120, 53, 15, 0.4);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
+        }
+        .skin-swatch:hover { transform: scale(1.12); }
+        .skin-swatch.active {
+            transform: scale(1.14);
+            box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 6px #EA580C;
+        }
+
+        /* Sticker & Scene Grids */
+        .sticker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.5rem;
+            max-height: 16.5rem;
+            overflow-y: auto;
+            padding: 0.25rem;
+        }
+        @media (min-width: 640px) and (max-width: 1023px) {
+            .sticker-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+        }
+        .sticker-btn {
+            background: #FFFBEB;
+            border: 2px solid #FDE68A;
+            border-radius: 1rem;
+            padding: 0.5rem 0.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            min-width: 0;
+        }
+        .sticker-btn:hover { background: #FEF3C7; }
+        .toolbox-svg {
+            font-size: 2rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 2.5rem;
+        }
+        .toolbox-svg svg {
+            width: 40px;
+            height: 40px;
+            display: block;
+        }
+        .sticker-name {
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #78350F;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            text-align: center;
+        }
+
+        .scene-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.65rem;
+        }
+        .scene-btn {
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 3px solid #FCD34D;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            background: #FFFBEB;
+        }
+        .scene-preview {
+            width: 100%;
+            height: 3.5rem;
+        }
+        .scene-label {
+            background: #FFFBEB;
+            padding: 0.4rem 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #451A03;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Text Panel */
+        .text-input-box {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            border-radius: 1rem;
+            border: 3px solid #FCD34D;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #451A03;
+            background: #FFFBEB;
+        }
+        .text-input-box:focus { border-color: #F97316; outline: none; }
+        .quick-phrases {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+        }
+        .quick-phrase-btn {
+            font-size: 0.82rem;
+            background: #FEF3C7;
+            color: #78350F;
+            font-weight: 800;
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.75rem;
+        }
+        .quick-phrase-btn:hover { background: #FDE68A; }
+        .style-toggle-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        .style-btn-group {
+            display: flex;
+            gap: 0.4rem;
+        }
+        .style-choice-btn {
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 800;
+            background: #FEF3C7;
+            color: #78350F;
+        }
+        .style-choice-btn.active {
+            background: #F97316;
+            color: #FFFFFF;
+        }
+        .btn-orange-full {
+            width: 100%;
+            background: #F97316;
+            color: #FFFFFF;
+            font-weight: 900;
+            padding: 0.65rem;
+            border-radius: 1rem;
+            box-shadow: 0 3px 6px rgba(194, 65, 12, 0.25);
+            border-bottom: 4px solid #C2410C;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .btn-orange-full:hover { background: #FB923C; }
+
+        /* Selected Item Controls */
+        .controls-section {
+            margin-top: 0.25rem;
+            padding-top: 0.75rem;
+            border-top: 2px dashed #FDE68A;
+        }
+        .controls-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .controls-title {
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #B45309;
+        }
+        .selected-pill {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #EA580C;
+            background: #FFEDD5;
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            max-width: 11rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.45rem;
+        }
+        .tool-btn {
+            font-weight: 800;
+            padding: 0.45rem 0.25rem;
+            border-radius: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            gap: 0.15rem;
+        }
+        .tool-btn .icon { font-size: 1rem; }
+        .tool-sky { background: #E0F2FE; color: #0C4A6E; border-bottom: 2px solid #7DD3FC; }
+        .tool-sky:hover { background: #BAE6FD; }
+        .tool-teal { background: #CCFBF1; color: #134E4A; border-bottom: 2px solid #5EEAD4; }
+        .tool-teal:hover { background: #99F6E4; }
+        .tool-purple { background: #F3E8FF; color: #581C87; border-bottom: 2px solid #D8B4FE; }
+        .tool-purple:hover { background: #E9D5FF; }
+        .tool-lime { background: #ECFCCB; color: #365314; border-bottom: 2px solid #BEF264; }
+        .tool-lime:hover { background: #D9F99D; }
+        .tool-rose { background: #FFE4E6; color: #881337; border-bottom: 2px solid #FDA4AF; }
+        .tool-rose:hover { background: #FECDD3; }
+
+        /* Sound Button */
+        .btn-sound-open {
+            width: 100%;
+            background: #6366F1;
+            color: #FFFFFF;
+            font-weight: 900;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 8px rgba(67, 56, 202, 0.25);
+            border-bottom: 4px solid #4338CA;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .btn-sound-open:hover { background: #818CF8; }
+        .sound-btn-left {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-align: left;
+        }
+        .sound-btn-sub {
+            font-size: 0.75rem;
+            color: #E0E7FF;
+            font-weight: 700;
+        }
+        .sound-btn-pill {
+            background: rgba(55, 48, 163, 0.65);
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+
+        /* Right Stage & Filmstrip Column */
+        .stage-column {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .stage-topbar {
+            background: #FFFFFF;
+            border-radius: 1rem;
+            padding: 0.6rem 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            border: 2px solid #FDE68A;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        .slide-badge {
+            background: #F97316;
+            color: #FFFFFF;
+            font-weight: 900;
+            padding: 0.3rem 0.75rem;
+            border-radius: 0.75rem;
+            font-size: 0.92rem;
+        }
+        .drag-tip {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #92400E;
+        }
+        @media (max-width: 768px) { .drag-tip { display: none; } }
+
+        .topbar-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-mini-rose {
+            background: #FFE4E6;
+            color: #881337;
+            font-weight: 800;
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.75rem;
+            border-bottom: 2px solid #FDA4AF;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .btn-mini-rose:hover:not(:disabled) { background: #FECDD3; }
+        .btn-mini-yellow {
+            background: #FEF9C3;
+            color: #713F12;
+            font-weight: 800;
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.75rem;
+            border-bottom: 2px solid #FDE047;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .btn-mini-yellow:hover { background: #FEF08A; }
+
+        .ghost-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            cursor: pointer;
+            background: #FEF3C7;
+            padding: 0 0.75rem;
+            border-radius: 0.75rem;
+            min-height: 44px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #78350F;
+        }
+        .ghost-toggle:hover { background: #FDE68A; }
+        .ghost-toggle input {
+            width: 1.15rem;
+            height: 1.15rem;
+            accent-color: #EA580C;
+        }
+
+        /* Idea Banner */
+        .idea-banner {
+            background: #FEFCE8;
+            border: 2px solid #FDE047;
+            border-radius: 1rem;
+            padding: 0.65rem 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        .idea-banner-text {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #713F12;
+        }
+        .idea-banner-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        /* Interactive Stage */
         .scene-box {
             container-type: inline-size;
         }
         #stage-container {
+            position: relative;
+            width: 100%;
             aspect-ratio: 16 / 9;
             max-width: 100%;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            background: #FEF3C7;
             box-shadow: 0 12px 28px -5px rgba(146, 64, 14, 0.25), 0 0 0 6px #F59E0B;
+        }
+        .stage-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .pointer-none { pointer-events: none; }
+
+        .empty-hint-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            text-align: center;
+            padding: 1rem;
+        }
+        .empty-hint-card {
+            background: rgba(255, 255, 255, 0.88);
+            padding: 1rem 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 2px solid #FCD34D;
         }
 
         .stage-item {
@@ -139,11 +737,6 @@
         .sticker-svg svg {
             width: 4.1em;
             height: 4.1em;
-            display: block;
-        }
-        .toolbox-svg svg {
-            width: 42px;
-            height: 42px;
             display: block;
         }
 
@@ -187,22 +780,396 @@
             box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.25);
         }
 
-        /* Filmstrip */
+        /* Filmstrip Card */
+        .filmstrip-card {
+            background: #FFFFFF;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            box-shadow: 0 8px 20px rgba(146, 64, 14, 0.1);
+            border: 4px solid #FDE68A;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .filmstrip-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        .filmstrip-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-next-slide {
+            background: #F59E0B;
+            color: #FFFFFF;
+            font-weight: 900;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            box-shadow: 0 3px 6px rgba(180, 83, 9, 0.25);
+            border-bottom: 4px solid #B45309;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.95rem;
+        }
+        .btn-next-slide:hover { background: #FBBF24; }
+        .btn-slide-util {
+            background: #FEF3C7;
+            color: #78350F;
+            font-weight: 800;
+            padding: 0.5rem 0.75rem;
+            border-radius: 1rem;
+            border-bottom: 4px solid #FCD34D;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.85rem;
+        }
+        .btn-slide-util:hover:not(:disabled) { background: #FDE68A; }
+        .btn-slide-del {
+            background: #FFE4E6;
+            color: #9F1239;
+            font-weight: 800;
+            padding: 0.5rem 0.75rem;
+            border-radius: 1rem;
+            border-bottom: 4px solid #FDA4AF;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.85rem;
+        }
+        .btn-slide-del:hover { background: #FECDD3; }
+
+        .filmstrip-track {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            overflow-x: auto;
+            padding: 0.5rem 0.25rem;
+            min-height: 104px;
+        }
         .filmstrip-frame {
             position: relative;
             padding: 0;
+            flex-shrink: 0;
+            width: 8.5rem;
+            aspect-ratio: 16 / 9;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 3px solid #FCD34D;
+            opacity: 0.88;
             transition: all 0.2s ease;
         }
+        .filmstrip-frame:hover { opacity: 1; }
         .filmstrip-frame.active {
+            opacity: 1;
+            border-color: #EA580C;
             transform: scale(1.05);
             box-shadow: 0 0 0 4px #EA580C, 0 8px 15px rgba(234, 88, 12, 0.3);
         }
+        .frame-num-badge {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            background: rgba(69, 26, 3, 0.78);
+            color: #FFFFFF;
+            font-size: 0.7rem;
+            font-weight: 900;
+            padding: 0.1rem 0.45rem;
+            border-radius: 999px;
+        }
+        .frame-pills {
+            position: absolute;
+            bottom: 4px;
+            right: 6px;
+            display: flex;
+            gap: 4px;
+        }
+        .pill-hold {
+            background: #0284C7;
+            color: #FFFFFF;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 0.1rem 0.4rem;
+            border-radius: 999px;
+        }
+        .pill-sound {
+            background: #4F46E5;
+            color: #FFFFFF;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 0.1rem 0.4rem;
+            border-radius: 999px;
+        }
 
-        /* Sound wave pulse animation */
+        .slide-subtools {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            padding-top: 0.6rem;
+            border-top: 2px dashed #FDE68A;
+        }
+        .btn-sub-sky {
+            background: #E0F2FE;
+            color: #0C4A6E;
+            font-weight: 800;
+            padding: 0.45rem 0.75rem;
+            border-radius: 1rem;
+            border-bottom: 4px solid #7DD3FC;
+            font-size: 0.85rem;
+        }
+        .btn-sub-sky:hover { background: #BAE6FD; }
+        .btn-sub-emerald {
+            background: #D1FAE5;
+            color: #064E3B;
+            font-weight: 800;
+            padding: 0.45rem 0.75rem;
+            border-radius: 1rem;
+            border-bottom: 4px solid #6EE7B7;
+            font-size: 0.85rem;
+        }
+        .btn-sub-emerald:hover { background: #A7F3D0; }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(69, 26, 3, 0.68);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        .modal.open { display: flex; }
+        .modal-card {
+            background: #FFFFFF;
+            border-radius: 1.5rem;
+            max-width: 34rem;
+            width: 100%;
+            padding: 1.5rem;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
+            border: 4px solid #FBBF24;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .modal-card.indigo-border { border-color: #818CF8; }
+        .modal-card.sky-border { border-color: #38BDF8; }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        .btn-close-x {
+            background: #F3F4F6;
+            color: #374151;
+            font-weight: 900;
+            border-radius: 999px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-close-x:hover { background: #E5E7EB; }
+
+        .sound-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+        }
+        @media (min-width: 500px) { .sound-grid { grid-template-columns: repeat(3, 1fr); } }
+        .sound-opt-btn {
+            background: #EEF2FF;
+            border: 2px solid #C7D2FE;
+            border-radius: 1rem;
+            padding: 0.75rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+        .sound-opt-btn:hover { background: #E0E7FF; }
+        .sound-opt-btn.selected {
+            background: #C7D2FE;
+            box-shadow: 0 0 0 4px #6366F1;
+        }
+
+        /* Animation Preview Stage Modal */
+        .preview-card {
+            background: linear-gradient(180deg, #78350F 0%, #1C1917 100%);
+            border-radius: 1.5rem;
+            max-width: 56rem;
+            width: 100%;
+            padding: 1.25rem;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.5);
+            border: 4px solid #FBBF24;
+            color: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .preview-screen {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: #000000;
+            border: 4px solid rgba(245, 158, 11, 0.8);
+        }
+        .preview-badge-left {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            background: rgba(0, 0, 0, 0.6);
+            color: #FDE68A;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+        .preview-badge-right {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: rgba(79, 70, 229, 0.92);
+            color: #FFFFFF;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: none;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .preview-badge-right.visible { display: flex; }
+        .preview-controls {
+            background: rgba(41, 37, 36, 0.92);
+            border-radius: 1rem;
+            padding: 0.85rem 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .speed-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem;
+            background: #1C1917;
+            padding: 0.35rem 0.75rem;
+            border-radius: 1rem;
+        }
+        .speed-btn {
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 800;
+            background: #44403C;
+            color: #E5E7EB;
+        }
+        .speed-btn.active {
+            background: #F59E0B;
+            color: #451A03;
+        }
+
+        /* Help Steps */
+        .help-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+        .help-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            background: #FFFBEB;
+            padding: 0.65rem 0.85rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: #451A03;
+        }
+        .step-num {
+            background: #F97316;
+            color: #FFFFFF;
+            width: 1.6rem;
+            height: 1.6rem;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.85rem;
+            font-weight: 900;
+        }
+
+        /* Save & Share Form */
+        .code-textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border-radius: 1rem;
+            border: 3px solid #7DD3FC;
+            font-size: 0.78rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            color: #0C4A6E;
+            background: #F0F9FF;
+            word-break: break-all;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { height: 10px; width: 10px; }
+        ::-webkit-scrollbar-track { background: #FEF3C7; border-radius: 999px; }
+        ::-webkit-scrollbar-thumb { background: #F59E0B; border-radius: 999px; border: 2px solid #FEF3C7; }
+        ::-webkit-scrollbar-thumb:hover { background: #D97706; }
+
+        /* Toast Notification */
+        #toast-box {
+            position: fixed;
+            bottom: 1.25rem;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: calc(100% - 32px);
+            background: #78350F;
+            color: #FFFFFF;
+            padding: 0.65rem 1.25rem;
+            border-radius: 999px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            font-weight: 800;
+            font-size: 0.9rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 60;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        #toast-box.show { opacity: 1; }
+
         @keyframes pulse-ring {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.08); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
+            0% { transform: scale(0.95); opacity: 0.85; }
+            50% { transform: scale(1.06); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.85; }
         }
         .sound-playing { animation: pulse-ring 1s infinite ease-in-out; }
     </style>
@@ -210,271 +1177,249 @@
 <body>
 
     <!-- Top Header Bar -->
-    <header class="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white py-3 px-4 md:px-6 shadow-md border-b-4 border-amber-700">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <div class="bg-white text-3xl p-2 rounded-2xl shadow-inner transform -rotate-3">
-                    🦃
-                </div>
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="brand-wrap">
+                <div class="brand-logo" aria-hidden="true">🦃</div>
                 <div>
-                    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-wide drop-shadow">
-                        Thanksgiving Stop Motion Studio
-                    </h1>
-                    <p class="text-xs sm:text-sm text-amber-100 font-semibold">
-                        Create your own festive holiday movie slide by slide!
-                    </p>
+                    <h1 class="brand-title">Thanksgiving Stop Motion Studio</h1>
+                    <p class="brand-subtitle">Create your own festive holiday animation slide by slide!</p>
                 </div>
             </div>
 
-            <!-- Big Action Buttons -->
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                <button id="btn-help" data-say="How to play" class="btn-bounce bg-amber-100 hover:bg-white text-amber-900 font-bold py-2 px-3 sm:px-4 rounded-2xl shadow border-b-4 border-amber-300 flex items-center gap-1.5 text-sm sm:text-base">
-                    <span>💡</span> <span class="hidden sm:inline">How to Play</span>
+            <!-- Action Buttons -->
+            <div class="header-actions">
+                <button id="btn-help" data-say="How to play" class="btn-bounce btn-amber-light">
+                    <span>💡</span> <span>How to Play</span>
                 </button>
-                <button id="btn-read" aria-pressed="false" class="btn-bounce bg-amber-100 hover:bg-white text-amber-900 font-bold py-2 px-3 sm:px-4 rounded-2xl shadow border-b-4 border-amber-300 flex items-center gap-1.5 text-sm sm:text-base">
+                <button id="btn-read" aria-pressed="false" class="btn-bounce btn-amber-light">
                     <span>🗣️</span> <span id="read-label">Read to Me: Off</span>
                 </button>
-                <button id="btn-save" data-say="Save and share" class="btn-bounce bg-sky-100 hover:bg-white text-sky-900 font-bold py-2 px-3 sm:px-4 rounded-2xl shadow border-b-4 border-sky-300 flex items-center gap-1.5 text-sm sm:text-base">
+                <button id="btn-save" data-say="Save and share" class="btn-bounce btn-sky-light">
                     <span>💾</span> <span>Save &amp; Share</span>
                 </button>
-                <button id="btn-create-movie" class="btn-bounce bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold py-2.5 px-4 sm:px-6 rounded-2xl shadow-lg border-b-4 border-emerald-700 flex items-center gap-2 text-base sm:text-lg">
-                    <span class="text-xl">🎬</span>
-                    <span>Create Stop Motion Movie!</span>
+                <button id="btn-create-animation" class="btn-bounce btn-emerald-main">
+                    <span>▶️</span>
+                    <span>Play Stop Motion Animation!</span>
                 </button>
             </div>
         </div>
     </header>
 
     <!-- Main Workspace -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+    <main class="workspace">
 
         <!-- Left Toolbox: Festive Stickers, Backgrounds & Text -->
-        <aside class="lg:col-span-4 min-w-0 bg-white rounded-3xl p-4 shadow-lg border-4 border-amber-200 flex flex-col gap-4">
+        <aside class="toolbox-card">
 
             <!-- Category Tabs -->
-            <div class="grid grid-cols-3 gap-2 bg-amber-100 p-1.5 rounded-2xl">
-                <button onclick="switchTab('stickers')" id="tab-stickers" class="tab-btn bg-amber-500 text-white font-bold py-2 px-2 rounded-xl shadow text-sm sm:text-base flex items-center justify-center gap-1 transition">
+            <div class="tab-bar">
+                <button onclick="switchTab('stickers')" id="tab-stickers" class="tab-btn active">
                     <span>🦃</span> Stickers
                 </button>
-                <button onclick="switchTab('scenes')" id="tab-scenes" class="tab-btn text-amber-800 hover:bg-amber-200/60 font-bold py-2 px-2 rounded-xl text-sm sm:text-base flex items-center justify-center gap-1 transition">
+                <button onclick="switchTab('scenes')" id="tab-scenes" class="tab-btn">
                     <span>🍂</span> Scenes
                 </button>
-                <button onclick="switchTab('text')" id="tab-text" class="tab-btn text-amber-800 hover:bg-amber-200/60 font-bold py-2 px-2 rounded-xl text-sm sm:text-base flex items-center justify-center gap-1 transition">
+                <button onclick="switchTab('text')" id="tab-text" class="tab-btn">
                     <span>💬</span> Words
                 </button>
             </div>
 
             <!-- Panel 1: Thanksgiving Stickers -->
-            <div id="panel-stickers" class="flex flex-col gap-2.5">
-                <p class="text-sm font-bold text-amber-800 flex items-center justify-between">
+            <div id="panel-stickers" class="tab-panel">
+                <div class="panel-header-row">
                     <span>Tap to add to your slide:</span>
-                    <span id="sticker-count" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"></span>
-                </p>
-
-                <!-- Quick Pilgrim Skin Color Bar in Sticker Toolbox -->
-                <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-2.5 flex flex-col gap-1.5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-extrabold text-amber-900 flex items-center gap-1">
-                            <span>🎨</span> Pilgrim Skin Color:
-                        </span>
-                        <span id="toolbox-skin-name" class="text-[11px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">Fair Peach</span>
-                    </div>
-                    <div id="toolbox-skin-swatches" class="flex flex-wrap items-center justify-between gap-1.5" role="group" aria-label="Pilgrim skin color swatches">
-                        <!-- Swatches populated via JS -->
-                    </div>
+                    <span id="sticker-count" class="pill-count"></span>
                 </div>
 
-                <div id="sticker-grid" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-1">
-                    <!-- Populated via JS -->
+                <!-- Pilgrim Skin Color Bar -->
+                <div class="skin-box">
+                    <div class="skin-header">
+                        <span class="skin-title"><span>🎨</span> Pilgrim Skin Color:</span>
+                        <span id="toolbox-skin-name" class="skin-badge">Fair Peach</span>
+                    </div>
+                    <div id="toolbox-skin-swatches" class="swatch-row" role="group" aria-label="Pilgrim skin color swatches"></div>
                 </div>
+
+                <div id="sticker-grid" class="sticker-grid"></div>
             </div>
 
             <!-- Panel 2: Background Scenes -->
-            <div id="panel-scenes" class="hidden flex-col gap-2">
-                <p class="text-sm font-bold text-amber-800">Choose a background scene:</p>
-                <div id="scene-grid" class="grid grid-cols-2 gap-2.5">
-                    <!-- Populated via JS -->
-                </div>
+            <div id="panel-scenes" class="tab-panel hidden">
+                <p class="panel-header-row">Choose a background scene:</p>
+                <div id="scene-grid" class="scene-grid"></div>
             </div>
 
             <!-- Panel 3: Add Text / Speech Bubble -->
-            <div id="panel-text" class="hidden flex-col gap-3">
-                <label for="text-input" class="text-sm font-bold text-amber-800">Type a title or speech bubble:</label>
-                <input type="text" id="text-input" maxlength="40" placeholder="Gobble, gobble!" class="w-full px-3.5 py-2.5 rounded-2xl border-3 border-amber-300 focus:border-orange-500 focus:outline-none text-base font-bold text-amber-950 bg-amber-50">
+            <div id="panel-text" class="tab-panel hidden">
+                <label for="text-input" class="panel-header-row">Type a title or speech bubble:</label>
+                <input type="text" id="text-input" maxlength="40" placeholder="Gobble, gobble!" class="text-input-box">
 
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="setQuickText('Gobble Gobble!')" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-xl">Gobble Gobble!</button>
-                    <button onclick="setQuickText('Happy Thanksgiving!')" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-xl">Happy Thanksgiving!</button>
-                    <button onclick="setQuickText('Yummy Pie!')" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-xl">Yummy Pie!</button>
-                    <button onclick="setQuickText('The End!')" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-xl">The End!</button>
+                <div class="quick-phrases">
+                    <button onclick="setQuickText('Gobble Gobble!')" class="quick-phrase-btn">Gobble Gobble!</button>
+                    <button onclick="setQuickText('Happy Thanksgiving!')" class="quick-phrase-btn">Happy Thanksgiving!</button>
+                    <button onclick="setQuickText('Yummy Pie!')" class="quick-phrase-btn">Yummy Pie!</button>
+                    <button onclick="setQuickText('The End!')" class="quick-phrase-btn">The End!</button>
                 </div>
 
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <span class="text-xs font-bold text-amber-800">Text Style:</span>
-                    <div class="flex gap-1.5">
-                        <button onclick="setTextStyle('bubble')" id="style-bubble" class="px-3 py-1 rounded-xl text-sm font-bold bg-orange-500 text-white">💬 Speech Bubble</button>
-                        <button onclick="setTextStyle('banner')" id="style-banner" class="px-3 py-1 rounded-xl text-sm font-bold bg-amber-100 text-amber-900">🏷️ Title Banner</button>
+                <div class="style-toggle-row">
+                    <span class="panel-header-row">Text Style:</span>
+                    <div class="style-btn-group">
+                        <button onclick="setTextStyle('bubble')" id="style-bubble" class="style-choice-btn active">💬 Speech Bubble</button>
+                        <button onclick="setTextStyle('banner')" id="style-banner" class="style-choice-btn">🏷️ Title Banner</button>
                     </div>
                 </div>
 
-                <button id="btn-add-text" class="btn-bounce w-full bg-orange-500 hover:bg-orange-400 text-white font-extrabold py-2.5 rounded-2xl shadow border-b-4 border-orange-700 flex items-center justify-center gap-2">
+                <button id="btn-add-text" class="btn-bounce btn-orange-full">
                     <span>➕</span> Add Words to Slide
                 </button>
             </div>
 
             <!-- Selected Item Controls -->
-            <div id="item-controls" class="mt-1 pt-3 border-t-2 border-dashed border-amber-200">
-                <div class="flex items-center justify-between gap-2 mb-2">
-                    <span class="text-xs font-extrabold uppercase tracking-wider text-amber-700">Selected Item Tools</span>
-                    <span id="selected-label" class="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full truncate">Tap an item on stage</span>
+            <div id="item-controls" class="controls-section">
+                <div class="controls-header">
+                    <span class="controls-title">Selected Item Tools</span>
+                    <span id="selected-label" class="selected-pill">Tap an item on stage</span>
                 </div>
 
-                <!-- Dynamic Pilgrim Skin Color Picker (appears when a Pilgrim is selected on the stage) -->
-                <div id="selected-pilgrim-skin-bar" hidden class="mb-2.5 bg-orange-50 border-2 border-orange-300 rounded-2xl p-2.5 flex flex-col gap-1.5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-extrabold text-orange-950 flex items-center gap-1">
-                            <span>🎨</span> Change Pilgrim Skin Color:
-                        </span>
-                        <span id="selected-skin-name" class="text-[11px] font-bold text-orange-800 bg-white px-2 py-0.5 rounded-full border border-orange-200">Fair Peach</span>
+                <!-- Dynamic Pilgrim Skin Color Picker -->
+                <div id="selected-pilgrim-skin-bar" hidden class="skin-box selected-variant">
+                    <div class="skin-header">
+                        <span class="skin-title"><span>🎨</span> Change Pilgrim Skin Color:</span>
+                        <span id="selected-skin-name" class="skin-badge">Fair Peach</span>
                     </div>
-                    <div id="selected-skin-swatches" class="flex flex-wrap items-center justify-between gap-1.5" role="group" aria-label="Change selected Pilgrim skin color">
-                        <!-- Swatches populated via JS -->
-                    </div>
+                    <div id="selected-skin-swatches" class="swatch-row" role="group" aria-label="Change selected Pilgrim skin color"></div>
                 </div>
 
-                <div class="grid grid-cols-4 gap-2">
-                    <button onclick="resizeSelected(0.15)" data-say="Bigger" class="btn-bounce bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-sky-300">
-                        <span class="text-base">🔍+</span> Bigger
+                <div class="tool-grid">
+                    <button onclick="resizeSelected(0.15)" data-say="Bigger" class="btn-bounce tool-btn tool-sky">
+                        <span class="icon">🔍+</span> Bigger
                     </button>
-                    <button onclick="resizeSelected(-0.15)" data-say="Smaller" class="btn-bounce bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-sky-300">
-                        <span class="text-base">🔍-</span> Smaller
+                    <button onclick="resizeSelected(-0.15)" data-say="Smaller" class="btn-bounce tool-btn tool-sky">
+                        <span class="icon">🔍-</span> Smaller
                     </button>
-                    <button onclick="rotateSelected(-15)" data-say="Turn left" class="btn-bounce bg-teal-100 hover:bg-teal-200 text-teal-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-teal-300">
-                        <span class="text-base">↺</span> Turn Left
+                    <button onclick="rotateSelected(-15)" data-say="Turn left" class="btn-bounce tool-btn tool-teal">
+                        <span class="icon">↺</span> Turn Left
                     </button>
-                    <button onclick="rotateSelected(15)" data-say="Turn right" class="btn-bounce bg-teal-100 hover:bg-teal-200 text-teal-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-teal-300">
-                        <span class="text-base">↻</span> Turn Right
+                    <button onclick="rotateSelected(15)" data-say="Turn right" class="btn-bounce tool-btn tool-teal">
+                        <span class="icon">↻</span> Turn Right
                     </button>
-                    <button onclick="flipSelected()" data-say="Flip" class="btn-bounce bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-purple-300">
-                        <span class="text-base">↔️</span> Flip
+                    <button onclick="flipSelected()" data-say="Flip" class="btn-bounce tool-btn tool-purple">
+                        <span class="icon">↔️</span> Flip
                     </button>
-                    <button onclick="layerSelected('front')" data-say="Bring to front" class="btn-bounce bg-lime-100 hover:bg-lime-200 text-lime-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-lime-300">
-                        <span class="text-base">⬆️</span> To Front
+                    <button onclick="layerSelected('front')" data-say="Bring to front" class="btn-bounce tool-btn tool-lime">
+                        <span class="icon">⬆️</span> To Front
                     </button>
-                    <button onclick="layerSelected('back')" data-say="Send to back" class="btn-bounce bg-lime-100 hover:bg-lime-200 text-lime-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-lime-300">
-                        <span class="text-base">⬇️</span> To Back
+                    <button onclick="layerSelected('back')" data-say="Send to back" class="btn-bounce tool-btn tool-lime">
+                        <span class="icon">⬇️</span> To Back
                     </button>
-                    <button onclick="deleteSelected()" data-say="Trash" class="btn-bounce bg-rose-100 hover:bg-rose-200 text-rose-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-rose-300">
-                        <span class="text-base">🗑️</span> Trash
+                    <button onclick="deleteSelected()" data-say="Trash" class="btn-bounce tool-btn tool-rose">
+                        <span class="icon">🗑️</span> Trash
                     </button>
                 </div>
             </div>
 
             <!-- Add Sound Button Section -->
-            <div class="mt-1 pt-3 border-t-2 border-dashed border-amber-200">
-                <button id="btn-open-sound" data-say="Add sound to slide" class="btn-bounce w-full bg-indigo-500 hover:bg-indigo-400 text-white font-extrabold py-3 px-4 rounded-2xl shadow-md border-b-4 border-indigo-700 flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <span class="text-2xl">🔊</span>
-                        <div class="text-left">
-                            <div class="text-sm sm:text-base leading-tight">Add Sound to Slide</div>
-                            <div id="current-sound-badge" class="text-xs text-indigo-100 font-semibold">No sound on this slide</div>
+            <div class="controls-section">
+                <button id="btn-open-sound" data-say="Add sound to slide" class="btn-bounce btn-sound-open">
+                    <div class="sound-btn-left">
+                        <span style="font-size: 1.5rem;">🔊</span>
+                        <div>
+                            <div style="font-size: 0.95rem;">Add Sound to Slide</div>
+                            <div id="current-sound-badge" class="sound-btn-sub">No sound on this slide</div>
                         </div>
                     </div>
-                    <span class="bg-indigo-700/60 px-2.5 py-1 rounded-xl text-xs font-bold">Pick 🎵</span>
+                    <span class="sound-btn-pill">Pick 🎵</span>
                 </button>
             </div>
         </aside>
 
-        <!-- Center & Right: Movie Stage & Slide Filmstrip -->
-        <section class="lg:col-span-8 min-w-0 flex flex-col gap-4">
+        <!-- Center & Right: Animation Stage & Slide Filmstrip -->
+        <section class="stage-column">
 
             <!-- Stage Top Info -->
-            <div class="bg-white rounded-2xl px-4 py-2.5 shadow border-2 border-amber-200 flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                    <span class="bg-orange-500 text-white font-extrabold px-3 py-1 rounded-xl text-sm sm:text-base shadow-sm">
+            <div class="stage-topbar">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span class="slide-badge">
                         Slide <span id="slide-counter">1 of 1</span>
                     </span>
-                    <span class="text-xs sm:text-sm font-bold text-amber-800 hidden md:inline">
-                        Drag items around to make them move!
-                    </span>
+                    <span class="drag-tip">Drag items around to make them move!</span>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2">
-                    <button id="btn-undo" disabled data-say="Undo" class="btn-bounce bg-rose-100 hover:bg-rose-200 text-rose-900 font-extrabold px-3 py-1.5 rounded-xl border-b-2 border-rose-300 text-sm flex items-center gap-1.5">
+                <div class="topbar-controls">
+                    <button id="btn-undo" disabled data-say="Undo" class="btn-bounce btn-mini-rose">
                         <span>↩️</span> Undo
                     </button>
-                    <button id="btn-idea" data-say="Story idea" class="btn-bounce bg-yellow-100 hover:bg-yellow-200 text-yellow-900 font-extrabold px-3 py-1.5 rounded-xl border-b-2 border-yellow-300 text-sm flex items-center gap-1.5">
+                    <button id="btn-idea" data-say="Story idea" class="btn-bounce btn-mini-yellow">
                         <span>💡</span> Story Idea
                     </button>
-                    <label class="flex items-center gap-2 cursor-pointer bg-amber-100 hover:bg-amber-200/80 px-3 rounded-xl transition min-h-[44px]">
-                        <input type="checkbox" id="toggle-onion" checked class="w-5 h-5 accent-orange-600 rounded">
-                        <span class="text-xs sm:text-sm font-bold text-amber-900">👻 Ghost Helper</span>
+                    <label class="ghost-toggle">
+                        <input type="checkbox" id="toggle-onion" checked>
+                        <span>👻 Ghost Helper</span>
                     </label>
                 </div>
             </div>
 
             <!-- Story idea / example notice -->
-            <div id="idea-bar" hidden class="bg-yellow-50 border-2 border-yellow-300 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
-                <p id="idea-text" class="text-sm sm:text-base font-bold text-yellow-900 min-w-0"></p>
-                <div class="flex flex-wrap items-center gap-2">
-                    <button id="btn-start-own" hidden class="btn-bounce bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold px-3 py-1.5 rounded-xl border-b-2 border-emerald-700 text-sm">🆕 Start My Own Movie</button>
-                    <button id="btn-idea-close" class="bg-yellow-200 hover:bg-yellow-300 text-yellow-900 font-extrabold px-3 py-1.5 rounded-xl text-sm">Got it!</button>
+            <div id="idea-bar" hidden class="idea-banner">
+                <p id="idea-text" class="idea-banner-text"></p>
+                <div class="idea-banner-actions">
+                    <button id="btn-start-own" hidden class="btn-bounce btn-emerald-main" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">🆕 Start My Own Animation</button>
+                    <button id="btn-idea-close" class="btn-mini-yellow">Got it!</button>
                 </div>
             </div>
 
-            <!-- Interactive Movie Stage -->
-            <div id="stage-container" class="scene-box relative w-full rounded-3xl overflow-hidden bg-amber-100 select-none">
-                <div id="stage-background" class="absolute inset-0 w-full h-full"></div>
-                <div id="onion-layer" class="absolute inset-0 w-full h-full pointer-events-none"></div>
-                <div id="stage-items" class="absolute inset-0 w-full h-full"></div>
+            <!-- Interactive Animation Stage -->
+            <div id="stage-container" class="scene-box">
+                <div id="stage-background" class="stage-layer"></div>
+                <div id="onion-layer" class="stage-layer pointer-none"></div>
+                <div id="stage-items" class="stage-layer"></div>
 
                 <!-- Empty Stage Hint -->
-                <div id="empty-hint" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center p-4">
-                    <div class="bg-white/85 backdrop-blur-sm px-6 py-4 rounded-3xl shadow-md border-2 border-amber-300">
-                        <p class="text-lg sm:text-xl font-extrabold text-amber-900">👈 Tap a Pilgrim, Turkey, or Fox to start!</p>
-                        <p class="text-xs sm:text-sm font-bold text-amber-700 mt-1">Then click "Next Slide" below to move it!</p>
+                <div id="empty-hint" class="empty-hint-overlay">
+                    <div class="empty-hint-card">
+                        <p style="font-size: 1.15rem; font-weight: 900; color: #78350F;">👈 Tap a Pilgrim, Turkey, or Fox to start!</p>
+                        <p style="font-size: 0.85rem; font-weight: 700; color: #B45309; margin-top: 0.25rem;">Then click "Next Slide" below to move it!</p>
                     </div>
                 </div>
             </div>
 
             <!-- Slide Controls & Filmstrip Timeline -->
-            <div class="bg-white rounded-3xl p-4 shadow-lg border-4 border-amber-200 flex flex-col gap-3">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <h2 class="text-base sm:text-lg font-extrabold text-amber-900 flex items-center gap-2">
-                        <span>🎞️</span> Your Movie Slides
+            <div class="filmstrip-card">
+                <div class="filmstrip-top">
+                    <h2 style="font-size: 1.1rem; font-weight: 900; color: #78350F; display: flex; align-items: center; gap: 0.4rem;">
+                        <span>🎞️</span> Your Animation Slides
                     </h2>
 
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button id="btn-duplicate-slide" data-say="Next slide. Copy and move." class="btn-bounce bg-amber-500 hover:bg-amber-400 text-white font-extrabold py-2 px-3.5 sm:px-4 rounded-2xl shadow border-b-4 border-amber-700 flex items-center gap-1.5 text-sm sm:text-base">
+                    <div class="filmstrip-actions">
+                        <button id="btn-duplicate-slide" data-say="Next slide. Copy and move." class="btn-bounce btn-next-slide">
                             <span>📸</span> Next Slide (Copy &amp; Move)
                         </button>
-                        <button id="btn-blank-slide" class="btn-bounce bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-2 px-3 rounded-2xl border-b-4 border-amber-300 flex items-center gap-1 text-xs sm:text-sm">
+                        <button id="btn-blank-slide" class="btn-bounce btn-slide-util">
                             <span>📄</span> Blank Slide
                         </button>
-                        <button id="btn-delete-slide" class="btn-bounce bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold py-2 px-3 rounded-2xl border-b-4 border-rose-300 flex items-center gap-1 text-xs sm:text-sm">
+                        <button id="btn-delete-slide" class="btn-bounce btn-slide-del">
                             <span>❌</span> Delete Slide
                         </button>
                     </div>
                 </div>
 
                 <!-- Filmstrip Container -->
-                <div id="filmstrip" class="relative flex items-center gap-3 overflow-x-auto py-2 px-1 min-h-[104px]">
-                    <!-- Thumbnails rendered by JS -->
-                </div>
+                <div id="filmstrip" class="filmstrip-track"></div>
 
-                <!-- Tools for the slide you are on -->
-                <div class="flex flex-wrap items-center gap-2 pt-2 border-t-2 border-dashed border-amber-200">
-                    <span class="text-xs font-extrabold uppercase tracking-wider text-amber-700">This Slide:</span>
-                    <button id="btn-move-earlier" data-say="Move slide earlier" class="btn-bounce bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-2 px-3 rounded-2xl border-b-4 border-amber-300 text-xs sm:text-sm">
+                <!-- Tools for the current slide -->
+                <div class="slide-subtools">
+                    <span class="controls-title">This Slide:</span>
+                    <button id="btn-move-earlier" data-say="Move slide earlier" class="btn-bounce btn-slide-util">
                         ◀ Move Earlier
                     </button>
-                    <button id="btn-move-later" data-say="Move slide later" class="btn-bounce bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-2 px-3 rounded-2xl border-b-4 border-amber-300 text-xs sm:text-sm">
+                    <button id="btn-move-later" data-say="Move slide later" class="btn-bounce btn-slide-util">
                         Move Later ▶
                     </button>
-                    <button id="btn-hold" class="btn-bounce bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold py-2 px-3 rounded-2xl border-b-4 border-sky-300 text-xs sm:text-sm">
+                    <button id="btn-hold" class="btn-bounce btn-sub-sky">
                         ⏱️ Stay on Screen: <span id="hold-label">Normal</span>
                     </button>
-                    <button id="btn-play-here" data-say="Play from here" class="btn-bounce bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold py-2 px-3 rounded-2xl border-b-4 border-emerald-300 text-xs sm:text-sm">
+                    <button id="btn-play-here" data-say="Play from here" class="btn-bounce btn-sub-emerald">
                         ▶️ Play From Here
                     </button>
                 </div>
@@ -484,168 +1429,165 @@
     </main>
 
     <!-- Sound Picker Modal -->
-    <div id="sound-modal" class="modal fixed inset-0 bg-amber-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border-4 border-indigo-400">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl sm:text-2xl font-extrabold text-indigo-950 flex items-center gap-2">
+    <div id="sound-modal" class="modal">
+        <div class="modal-card indigo-border">
+            <div class="modal-header">
+                <h3 style="font-size: 1.35rem; font-weight: 900; color: #1E1B4B; display: flex; align-items: center; gap: 0.4rem;">
                     <span>🎵</span> Pick a Sound for Slide <span id="modal-slide-num">1</span>
                 </h3>
-                <button onclick="closeModal('sound-modal')" aria-label="Close" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-full flex items-center justify-center">✕</button>
+                <button onclick="closeModal('sound-modal')" aria-label="Close" class="btn-close-x">✕</button>
             </div>
 
-            <p class="text-sm font-bold text-indigo-800 mb-3">Tap a sound to hear it and attach it to this slide!</p>
+            <p style="font-size: 0.9rem; font-weight: 800; color: #312E81;">Tap a sound to hear it and attach it to this slide!</p>
 
-            <div id="sound-options-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-5">
-                <!-- Sound buttons populated by JS -->
-            </div>
+            <div id="sound-options-grid" class="sound-grid"></div>
 
-            <div class="flex items-center justify-between gap-3 pt-3 border-t-2 border-indigo-100">
-                <button onclick="selectSlideSound(null)" class="btn-bounce bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2.5 px-4 rounded-2xl text-sm">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding-top: 0.75rem; border-top: 2px solid #E0E7FF;">
+                <button onclick="selectSlideSound(null)" class="btn-bounce" style="background: #F3F4F6; color: #1F2937; font-weight: 800; padding: 0.6rem 1rem; border-radius: 1rem;">
                     🔇 No Sound
                 </button>
-                <button onclick="closeModal('sound-modal')" data-say="Done" class="btn-bounce bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-2.5 px-6 rounded-2xl shadow border-b-4 border-indigo-800 text-sm sm:text-base">
+                <button onclick="closeModal('sound-modal')" data-say="Done" class="btn-bounce" style="background: #4F46E5; color: #FFFFFF; font-weight: 900; padding: 0.6rem 1.5rem; border-radius: 1rem; border-bottom: 4px solid #3730A3;">
                     Done! 👍
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Movie Theater Playback Modal -->
-    <div id="movie-modal" class="modal fixed inset-0 bg-amber-950/85 backdrop-blur-md z-50 hidden items-center justify-center p-3 sm:p-6 overflow-y-auto">
-        <div class="bg-gradient-to-b from-amber-900 to-stone-900 rounded-3xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl border-4 border-amber-400 text-white flex flex-col gap-4">
-
-            <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 min-w-0">
-                    <span class="text-2xl sm:text-3xl">🍿</span>
-                    <h3 id="theater-title" class="text-xl sm:text-2xl font-extrabold text-amber-300 truncate">Thanksgiving Movie Theater</h3>
+    <!-- Stop Motion Animation Preview Modal -->
+    <div id="preview-modal" class="modal">
+        <div class="preview-card">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
+                    <span style="font-size: 1.65rem;">✨</span>
+                    <h3 id="preview-title" style="font-size: 1.35rem; font-weight: 900; color: #FCD34D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Thanksgiving Animation Preview</h3>
                 </div>
-                <button id="btn-close-movie" data-say="Back to editor" class="btn-bounce bg-rose-600 hover:bg-rose-500 text-white font-extrabold py-1.5 px-4 rounded-2xl border-b-4 border-rose-800 text-sm sm:text-base">
+                <button id="btn-close-preview" data-say="Back to editor" class="btn-bounce" style="background: #E11D48; color: #FFFFFF; font-weight: 900; padding: 0.45rem 1rem; border-radius: 1rem; border-bottom: 4px solid #9F1239;">
                     ✏️ Back to Editor
                 </button>
             </div>
 
-            <!-- Movie Screen -->
-            <div class="scene-box relative w-full aspect-video rounded-2xl overflow-hidden bg-black border-4 border-amber-500/80 shadow-inner">
-                <div id="movie-screen-bg" class="absolute inset-0 w-full h-full"></div>
-                <div id="movie-screen-items" class="absolute inset-0 w-full h-full"></div>
+            <!-- Animation Screen -->
+            <div class="scene-box preview-screen">
+                <div id="preview-screen-bg" class="stage-layer"></div>
+                <div id="preview-screen-items" class="stage-layer"></div>
 
-                <div class="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-amber-200 px-3 py-1 rounded-full text-xs font-bold">
-                    Slide <span id="movie-frame-indicator">1 / 1</span>
+                <div class="preview-badge-left">
+                    Slide <span id="preview-frame-indicator">1 / 1</span>
                 </div>
 
-                <div id="movie-sound-indicator" class="hidden absolute top-3 right-3 bg-indigo-600/90 text-white px-3 py-1 rounded-full text-xs font-bold items-center gap-1.5 shadow">
-                    <span>🔊</span> <span id="movie-sound-name">Gobble!</span>
+                <div id="preview-sound-indicator" class="preview-badge-right">
+                    <span>🔊</span> <span id="preview-sound-name">Gobble!</span>
                 </div>
             </div>
 
-            <!-- Theater Controls -->
-            <div class="bg-stone-800/90 rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 border border-amber-500/30">
-                <div class="flex items-center gap-2.5">
-                    <button id="btn-movie-play-pause" class="btn-bounce bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold py-2 px-5 rounded-2xl shadow border-b-4 border-emerald-700 flex items-center gap-2 text-base">
+            <!-- Playback Controls -->
+            <div class="preview-controls">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <button id="btn-preview-play-pause" class="btn-bounce btn-emerald-main" style="padding: 0.5rem 1.15rem;">
                         <span id="play-pause-icon">⏸️</span> <span id="play-pause-text">Pause</span>
                     </button>
-                    <button id="btn-movie-replay" data-say="Replay" class="btn-bounce bg-amber-500 hover:bg-amber-400 text-amber-950 font-extrabold py-2 px-4 rounded-2xl shadow border-b-4 border-amber-700 flex items-center gap-1.5 text-sm sm:text-base">
+                    <button id="btn-preview-replay" data-say="Replay" class="btn-bounce btn-next-slide" style="color: #451A03;">
                         <span>🔄</span> Replay
                     </button>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2 bg-stone-900 px-3 py-1.5 rounded-2xl">
-                    <span class="text-xs sm:text-sm font-bold text-amber-200">Movie Speed:</span>
-                    <button onclick="setMovieSpeed(1100)" data-ms="1100" data-say="Slow" class="speed-btn px-3 py-1 rounded-xl text-sm font-bold bg-stone-700 text-gray-200">🐢 Slow</button>
-                    <button onclick="setMovieSpeed(650)" data-ms="650" data-say="Normal" class="speed-btn px-3 py-1 rounded-xl text-sm font-bold bg-amber-500 text-amber-950">🦃 Normal</button>
-                    <button onclick="setMovieSpeed(350)" data-ms="350" data-say="Fast" class="speed-btn px-3 py-1 rounded-xl text-sm font-bold bg-stone-700 text-gray-200">🐇 Fast</button>
+                <div class="speed-group">
+                    <span style="font-size: 0.85rem; font-weight: 800; color: #FDE68A;">Animation Speed:</span>
+                    <button onclick="setPlaybackSpeed(1100)" data-ms="1100" data-say="Slow" class="speed-btn">🐢 Slow</button>
+                    <button onclick="setPlaybackSpeed(650)" data-ms="650" data-say="Normal" class="speed-btn active">🦃 Normal</button>
+                    <button onclick="setPlaybackSpeed(350)" data-ms="350" data-say="Fast" class="speed-btn">🐇 Fast</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Save & Share Modal -->
-    <div id="save-modal" class="modal fixed inset-0 bg-amber-950/60 backdrop-blur-sm z-50 hidden items-start sm:items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border-4 border-sky-400 flex flex-col gap-4">
-            <div class="flex items-center justify-between">
-                <h3 class="text-xl sm:text-2xl font-extrabold text-sky-950 flex items-center gap-2">
+    <div id="save-modal" class="modal">
+        <div class="modal-card sky-border">
+            <div class="modal-header">
+                <h3 style="font-size: 1.35rem; font-weight: 900; color: #082F49; display: flex; align-items: center; gap: 0.4rem;">
                     <span>💾</span> Save &amp; Share
                 </h3>
-                <button onclick="closeModal('save-modal')" aria-label="Close" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-full flex items-center justify-center">✕</button>
+                <button onclick="closeModal('save-modal')" aria-label="Close" class="btn-close-x">✕</button>
             </div>
 
-            <p id="autosave-note" class="text-sm font-bold text-emerald-800 bg-emerald-50 rounded-2xl px-3 py-2">
-                ✅ Your movie saves by itself on this computer.
+            <p id="autosave-note" style="font-size: 0.88rem; font-weight: 800; color: #065F46; background: #ECFDF5; border-radius: 1rem; padding: 0.6rem 0.85rem;">
+                ✅ Your animation saves by itself on this computer.
             </p>
 
-            <div class="flex flex-col gap-1.5">
-                <label for="movie-title" class="text-sm font-extrabold text-sky-900">Movie name:</label>
-                <input type="text" id="movie-title" maxlength="30" placeholder="The Hungry Turkey" class="w-full px-3.5 py-2.5 rounded-2xl border-3 border-sky-300 focus:border-sky-500 focus:outline-none text-base font-bold text-sky-950 bg-sky-50">
+            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                <label for="project-title" style="font-size: 0.88rem; font-weight: 900; color: #0C4A6E;">Animation name:</label>
+                <input type="text" id="project-title" maxlength="30" placeholder="The Hungry Turkey" class="text-input-box" style="border-color: #7DD3FC; background: #F0F9FF;">
             </div>
 
-            <div class="flex flex-col gap-1.5">
-                <label for="code-out" class="text-sm font-extrabold text-sky-900">Your movie code (copy it to share or turn in):</label>
-                <textarea id="code-out" readonly rows="3" class="w-full px-3 py-2 rounded-2xl border-3 border-sky-300 text-xs font-mono text-sky-950 bg-sky-50 break-all"></textarea>
-                <button id="btn-copy-code" class="btn-bounce bg-sky-500 hover:bg-sky-400 text-white font-extrabold py-2.5 rounded-2xl shadow border-b-4 border-sky-700">
-                    📋 Copy My Movie Code
+            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                <label for="code-out" style="font-size: 0.88rem; font-weight: 900; color: #0C4A6E;">Your project code (copy it to share or turn in):</label>
+                <textarea id="code-out" readonly rows="3" class="code-textarea"></textarea>
+                <button id="btn-copy-code" class="btn-bounce" style="background: #0EA5E9; color: #FFFFFF; font-weight: 900; padding: 0.6rem; border-radius: 1rem; border-bottom: 4px solid #0369A1;">
+                    📋 Copy My Project Code
                 </button>
             </div>
 
-            <div class="flex flex-col gap-1.5 pt-3 border-t-2 border-sky-100">
-                <label for="code-in" class="text-sm font-extrabold text-sky-900">Have a movie code? Paste it here:</label>
-                <textarea id="code-in" rows="3" placeholder="TSM1..." class="w-full px-3 py-2 rounded-2xl border-3 border-sky-300 focus:border-sky-500 focus:outline-none text-xs font-mono text-sky-950 bg-white break-all"></textarea>
-                <button id="btn-open-code" class="btn-bounce bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold py-2.5 rounded-2xl shadow border-b-4 border-emerald-700">
-                    📂 Open This Movie
+            <div style="display: flex; flex-direction: column; gap: 0.35rem; padding-top: 0.65rem; border-top: 2px solid #E0F2FE;">
+                <label for="code-in" style="font-size: 0.88rem; font-weight: 900; color: #0C4A6E;">Have a project code? Paste it here:</label>
+                <textarea id="code-in" rows="3" placeholder="TSA1..." class="code-textarea" style="background: #FFFFFF;"></textarea>
+                <button id="btn-open-code" class="btn-bounce btn-emerald-main" style="width: 100%; justify-content: center;">
+                    📂 Open This Project
                 </button>
             </div>
 
-            <div class="pt-3 border-t-2 border-sky-100">
-                <button id="btn-new-movie" class="btn-bounce w-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-extrabold py-2.5 rounded-2xl border-b-4 border-amber-300">
-                    🆕 Start a New Movie
+            <div style="padding-top: 0.65rem; border-top: 2px solid #E0F2FE;">
+                <button id="btn-new-project" class="btn-bounce btn-slide-util" style="width: 100%; justify-content: center; padding: 0.6rem;">
+                    🆕 Start a New Animation
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Kid-Friendly How-To Modal -->
-    <div id="help-modal" class="modal fixed inset-0 bg-amber-950/60 backdrop-blur-sm z-50 hidden items-start sm:items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border-4 border-amber-400">
-            <h3 class="text-2xl font-extrabold text-amber-900 mb-3 flex items-center gap-2">
-                <span>🎬</span> How to Make a Stop Motion Movie!
+    <div id="help-modal" class="modal">
+        <div class="modal-card">
+            <h3 style="font-size: 1.4rem; font-weight: 900; color: #78350F; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🎨</span> How to Make a Stop Motion Animation!
             </h3>
-            <ol class="space-y-3 text-amber-950 font-bold text-sm sm:text-base mb-5">
-                <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
-                    <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">1</span>
+            <ol class="help-list">
+                <li class="help-step">
+                    <span class="step-num">1</span>
                     <span>Pick festive stickers (like Pilgrims, turkeys &amp; foxes) and add words to your first slide. Tap a Pilgrim to change their skin color!</span>
                 </li>
-                <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
-                    <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">2</span>
+                <li class="help-step">
+                    <span class="step-num">2</span>
                     <span>Click <strong>"📸 Next Slide (Copy &amp; Move)"</strong>. It copies your picture!</span>
                 </li>
-                <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
-                    <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">3</span>
+                <li class="help-step">
+                    <span class="step-num">3</span>
                     <span>Move or turn your characters a little bit on the new slide. Follow the <strong>👻 Ghost Helper</strong>!</span>
                 </li>
-                <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
-                    <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">4</span>
-                    <span>Tap <strong>"🔊 Add Sound"</strong> for gobbles and music, then hit <strong>"🎬 Create Stop Motion Movie!"</strong></span>
+                <li class="help-step">
+                    <span class="step-num">4</span>
+                    <span>Tap <strong>"🔊 Add Sound"</strong> for gobbles and music, then hit <strong>"▶️ Play Stop Motion Animation!"</strong></span>
                 </li>
-                <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
-                    <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">5</span>
-                    <span>Made a mistake? Tap <strong>"↩️ Undo"</strong>. Finished? Tap <strong>"💾 Save &amp; Share"</strong> to get your movie code.</span>
+                <li class="help-step">
+                    <span class="step-num">5</span>
+                    <span>Made a mistake? Tap <strong>"↩️ Undo"</strong>. Finished? Tap <strong>"💾 Save &amp; Share"</strong> to get your project code.</span>
                 </li>
             </ol>
-            <button onclick="closeModal('help-modal')" data-say="Let's make a movie" class="btn-bounce w-full bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold py-3 rounded-2xl shadow border-b-4 border-emerald-700 text-lg">
-                Let's Make a Movie! 🦃
+            <button onclick="closeModal('help-modal')" data-say="Let's start animating" class="btn-bounce btn-emerald-main" style="width: 100%; justify-content: center; font-size: 1.1rem; padding: 0.75rem;">
+                Let's Start Animating! 🦃
             </button>
         </div>
     </div>
 
-    <!-- Custom Toast Notification Box (Never uses alert()) -->
-    <div id="toast-box" role="status" class="fixed bottom-5 left-1/2 -translate-x-1/2 max-w-[calc(100%-32px)] bg-amber-900 text-white px-5 py-2.5 rounded-full shadow-xl font-bold text-sm opacity-0 pointer-events-none transition-opacity duration-300 z-[60] flex items-center gap-2">
+    <!-- Custom Toast Notification Box -->
+    <div id="toast-box" role="status">
         <span id="toast-icon">✨</span>
         <span id="toast-msg">Message</span>
     </div>
 
     <script>
         /**
-         * THANKSGIVING STOP MOTION STUDIO
-         * Designed for Grades 1-4: Simple, tactile, colorful, and self-contained.
+         * THANKSGIVING STOP MOTION ANIMATION STUDIO
+         * 100% Self-Contained (Zero External CDNs, Pure Web Audio API, School-Filter Safe)
          */
 
         // --- 1. PILGRIM SKIN TONES & CUSTOM STORYBOOK SVGS ---
@@ -659,45 +1601,32 @@
             { id: 'deep_brown', name: 'Deep Brown', hex: '#5C3818' },
             { id: 'rich_dark', name: 'Rich Dark', hex: '#3D2314' }
         ];
-        const VALID_SKIN_HEX = new Set(SKIN_TONES.map(t => t.hex.toUpperCase()));
 
-        /**
-         * Generates a full-bodied Pilgrim Boy SVG with customizable skin color.
-         */
         function getPilgrimBoySVG(skinColor) {
             const skin = skinColor || '#F6C8A8';
             return `<svg viewBox="0 0 100 110" aria-hidden="true">
-                <!-- White Stockings -->
                 <rect x="37" y="76" width="9" height="19" rx="3" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/>
                 <rect x="54" y="76" width="9" height="19" rx="3" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/>
-                <!-- Pilgrim Shoes & Gold Buckles -->
                 <path d="M31 95 Q31 91 39 91 L47 91 L47 102 L29 102 Q27 98 31 95 Z" fill="#1C1917"/>
                 <rect x="36" y="92" width="6" height="5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.8"/>
                 <path d="M53 91 L61 91 Q69 91 69 95 Q73 98 71 102 L53 102 Z" fill="#1C1917"/>
                 <rect x="58" y="92" width="6" height="5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.8"/>
-                <!-- Welcoming Arms & Hands -->
                 <path d="M32 51 L17 65 L23 71 L35 59 Z" fill="#44403C" stroke="#292524" stroke-width="1.5" stroke-linejoin="round"/>
                 <rect x="16" y="64" width="8" height="4" rx="1.5" transform="rotate(42 20 66)" fill="#FFFFFF"/>
                 <circle cx="17" cy="70" r="5" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
                 <path d="M68 51 L83 65 L77 71 L65 59 Z" fill="#44403C" stroke="#292524" stroke-width="1.5" stroke-linejoin="round"/>
                 <rect x="76" y="64" width="8" height="4" rx="1.5" transform="rotate(-42 80 66)" fill="#FFFFFF"/>
                 <circle cx="83" cy="70" r="5" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
-                <!-- Breeches & Coat -->
                 <path d="M34 68 L66 68 L68 80 L52 80 L50 74 L48 80 L32 80 Z" fill="#292524"/>
                 <path d="M32 49 L68 49 L72 72 L28 72 Z" fill="#44403C" stroke="#292524" stroke-width="1.5" stroke-linejoin="round"/>
-                <!-- Belt & Gold Buckle -->
                 <rect x="30" y="61" width="40" height="5.5" fill="#1C1917"/>
                 <rect x="45" y="59.5" width="10" height="8.5" rx="1.5" fill="none" stroke="#FBBF24" stroke-width="2.2"/>
-                <!-- Crisp White Pilgrim Collar -->
                 <path d="M36 48 L50 56 L64 48 L60 45 L40 45 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2" stroke-linejoin="round"/>
-                <!-- Neck, Ears & Head -->
                 <rect x="45" y="42" width="10" height="7" rx="2" fill="${skin}"/>
                 <circle cx="33" cy="34" r="4" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
                 <circle cx="67" cy="34" r="4" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
                 <ellipse cx="50" cy="33" rx="16" ry="14.5" fill="${skin}" stroke="#78350F" stroke-width="1.4"/>
-                <!-- Hair Peeking Under Hat -->
                 <path d="M34 29 Q35 21 50 21 Q65 21 66 29 Q60 25 50 25 Q40 25 34 29 Z" fill="#5C3A21"/>
-                <!-- Friendly Eyes, Rosy Cheeks & Smile -->
                 <circle cx="44" cy="32" r="2.2" fill="#1C1917"/>
                 <circle cx="44.7" cy="31.3" r="0.7" fill="#FFFFFF"/>
                 <circle cx="56" cy="32" r="2.2" fill="#1C1917"/>
@@ -705,7 +1634,6 @@
                 <ellipse cx="40" cy="36" rx="2.8" ry="1.8" fill="#FB7185" opacity="0.55"/>
                 <ellipse cx="60" cy="36" rx="2.8" ry="1.8" fill="#FB7185" opacity="0.55"/>
                 <path d="M44.5 38.5 Q50 43.5 55.5 38.5" fill="none" stroke="#78350F" stroke-width="2" stroke-linecap="round"/>
-                <!-- Tall Pilgrim Hat with Band & Gold Buckle -->
                 <path d="M35 21 L38 6 Q50 3 62 6 L65 21 Z" fill="#292524" stroke="#1C1917" stroke-width="1.4"/>
                 <rect x="36" y="15.5" width="28" height="4.5" fill="#D97706"/>
                 <rect x="45.5" y="14.5" width="9" height="6.5" rx="1" fill="none" stroke="#FBBF24" stroke-width="2"/>
@@ -713,43 +1641,31 @@
             </svg>`;
         }
 
-        /**
-         * Generates a full-bodied Pilgrim Girl SVG with customizable skin color.
-         */
         function getPilgrimGirlSVG(skinColor) {
             const skin = skinColor || '#F6C8A8';
             return `<svg viewBox="0 0 100 110" aria-hidden="true">
-                <!-- Stockings & Buckled Pilgrim Shoes -->
                 <rect x="39" y="83" width="7" height="13" rx="2" fill="#F8FAFC"/>
                 <rect x="54" y="83" width="7" height="13" rx="2" fill="#F8FAFC"/>
                 <path d="M32 97 Q32 93 40 93 L47 93 L47 103 L30 103 Q28 100 32 97 Z" fill="#1C1917"/>
                 <rect x="37" y="94" width="5.5" height="4.5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.6"/>
                 <path d="M53 93 L60 93 Q68 93 68 97 Q72 100 70 103 L53 103 Z" fill="#1C1917"/>
                 <rect x="57.5" y="94" width="5.5" height="4.5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.6"/>
-                <!-- Arms & Hands -->
                 <path d="M33 50 L18 64 L24 70 L36 58 Z" fill="#3B4252" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
                 <rect x="17" y="63" width="8" height="4" rx="1.5" transform="rotate(42 21 65)" fill="#FFFFFF"/>
                 <circle cx="18" cy="69" r="4.8" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
                 <path d="M67 50 L82 64 L76 70 L64 58 Z" fill="#3B4252" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
                 <rect x="75" y="63" width="8" height="4" rx="1.5" transform="rotate(-42 79 65)" fill="#FFFFFF"/>
                 <circle cx="82" cy="69" r="4.8" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
-                <!-- Full Pilgrim Dress -->
                 <path d="M34 48 L66 48 L76 87 L24 87 Z" fill="#3B4252" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
-                <!-- Crisp White Apron -->
                 <path d="M36 60 L64 60 L69 86 L31 86 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.3" stroke-linejoin="round"/>
                 <rect x="35" y="57" width="30" height="4.5" rx="1.5" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1"/>
-                <!-- White Pilgrim Shawl Collar -->
                 <path d="M35 48 L50 57 L65 48 L60 44 L40 44 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2" stroke-linejoin="round"/>
-                <!-- White Pilgrim Bonnet / Coif -->
                 <path d="M30 35 Q28 13 50 13 Q72 13 70 35 Q68 43 62 43 L38 43 Q32 43 30 35 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.6"/>
                 <path d="M38 42 L34 51" stroke="#E2E8F0" stroke-width="2.5" stroke-linecap="round"/>
                 <path d="M62 42 L66 51" stroke="#E2E8F0" stroke-width="2.5" stroke-linecap="round"/>
-                <!-- Neck & Face -->
                 <rect x="45.5" y="41" width="9" height="7" rx="2" fill="${skin}"/>
                 <ellipse cx="50" cy="32.5" rx="15" ry="14" fill="${skin}" stroke="#78350F" stroke-width="1.4"/>
-                <!-- Hair Bangs Under Bonnet -->
                 <path d="M35 28 Q42 22 50 25 Q58 22 65 28 Q62 21 50 20 Q38 21 35 28 Z" fill="#78350F"/>
-                <!-- Friendly Eyes, Rosy Cheeks & Smile -->
                 <circle cx="44" cy="31.5" r="2.2" fill="#1C1917"/>
                 <circle cx="44.7" cy="30.8" r="0.7" fill="#FFFFFF"/>
                 <circle cx="56" cy="31.5" r="2.2" fill="#1C1917"/>
@@ -760,38 +1676,26 @@
             </svg>`;
         }
 
-        /**
-         * Full-bodied Autumn Fox SVG with bushy white-tipped tail, four legs with dark stockings,
-         * white chest ruff, pointed ears, and sweet smile.
-         */
         const FULL_FOX_SVG = `<svg viewBox="0 0 120 100" aria-hidden="true">
-            <!-- Big Bushy Orange & Cream Tail -->
             <path d="M38 62 Q12 52 10 68 Q9 83 34 78 Q44 75 46 66 Z" fill="#EA580C" stroke="#9A3412" stroke-width="1.6" stroke-linejoin="round"/>
             <path d="M19 58 Q10 60 10 68 Q10 76 20 77 Q24 68 19 58 Z" fill="#FFFBEB"/>
-            <!-- Back Legs with Dark Stockings -->
             <path d="M44 68 L41 89 L47 89 L50 70 Z" fill="#C2410C"/>
             <path d="M41 80 L41 90 L47 90 L47 80 Z" fill="#292524"/>
             <path d="M51 68 L49 91 L56 91 L58 69 Z" fill="#EA580C"/>
             <path d="M49 81 L49 92 L56 92 L56 81 Z" fill="#1C1917"/>
-            <!-- Front Legs with Dark Stockings -->
             <path d="M74 68 L73 89 L79 89 L80 68 Z" fill="#C2410C"/>
             <path d="M73 80 L73 90 L79 90 L79 80 Z" fill="#292524"/>
             <path d="M81 67 L82 91 L89 91 L87 66 Z" fill="#EA580C"/>
             <path d="M82 81 L82 92 L89 92 L89 81 Z" fill="#1C1917"/>
-            <!-- Sleek Fox Body -->
             <ellipse cx="64" cy="61" rx="24" ry="14" fill="#F97316" stroke="#9A3412" stroke-width="1.6"/>
-            <!-- Fluffy White Chest Ruff -->
             <path d="M76 49 Q91 53 88 68 Q79 71 74 63 Q72 55 76 49 Z" fill="#FFFBEB"/>
-            <!-- Pointed Fox Ears with Dark Tips -->
             <path d="M74 28 L71 12 L84 22 Z" fill="#EA580C" stroke="#9A3412" stroke-width="1.5" stroke-linejoin="round"/>
             <path d="M72 16 L71 12 L76 15 Z" fill="#1C1917"/>
             <path d="M87 26 L94 11 L99 27 Z" fill="#F97316" stroke="#9A3412" stroke-width="1.5" stroke-linejoin="round"/>
             <path d="M92 15 L94 11 L96 16 Z" fill="#1C1917"/>
             <path d="M89 24 L93 15 L96 24 Z" fill="#FED7AA"/>
-            <!-- Fox Head & Snout -->
             <path d="M72 36 Q72 22 88 22 Q100 22 103 33 L113 38 Q108 46 95 47 Q74 48 72 36 Z" fill="#F97316" stroke="#9A3412" stroke-width="1.6" stroke-linejoin="round"/>
             <path d="M82 39 Q94 37 112 38 Q107 46 94 47 Q83 47 82 39 Z" fill="#FFFBEB"/>
-            <!-- Cute Nose, Eye, Cheek & Smile -->
             <circle cx="112" cy="38" r="3" fill="#1C1917"/>
             <circle cx="91" cy="31" r="2.7" fill="#1C1917"/>
             <circle cx="91.8" cy="30.2" r="0.9" fill="#FFFFFF"/>
@@ -800,63 +1704,49 @@
         </svg>`;
 
         const MAYFLOWER_SVG = `<svg viewBox="0 0 110 100" aria-hidden="true">
-            <!-- Masts -->
             <rect x="42" y="14" width="4" height="52" fill="#78350F"/>
             <rect x="68" y="20" width="4" height="46" fill="#78350F"/>
-            <!-- Pennant Flags -->
             <polygon points="44,12 58,15 44,19" fill="#EF4444"/>
             <polygon points="70,18 82,21 70,24" fill="#F59E0B"/>
-            <!-- Billowing White Sails -->
             <path d="M24 24 Q44 19 60 24 Q55 42 60 56 Q44 51 24 56 Q30 40 24 24 Z" fill="#FFFBEB" stroke="#D97706" stroke-width="1.6"/>
             <path d="M36 39 L48 39 M42 32 L42 47" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round"/>
             <path d="M56 28 Q70 24 84 28 Q80 42 84 54 Q70 50 56 54 Q61 41 56 28 Z" fill="#FEF3C7" stroke="#D97706" stroke-width="1.6"/>
-            <!-- Wooden Ship Hull -->
             <path d="M14 60 L96 60 L84 82 L26 82 Z" fill="#92400E" stroke="#451A03" stroke-width="2" stroke-linejoin="round"/>
             <path d="M18 66 L92 66" stroke="#F59E0B" stroke-width="3"/>
             <circle cx="36" cy="73" r="3" fill="#FDE047"/>
             <circle cx="55" cy="73" r="3" fill="#FDE047"/>
             <circle cx="74" cy="73" r="3" fill="#FDE047"/>
-            <!-- Ocean Waves -->
             <path d="M8 84 Q20 79 32 84 T56 84 T80 84 T102 84" fill="none" stroke="#0284C7" stroke-width="4" stroke-linecap="round"/>
         </svg>`;
 
         const SCARECROW_SVG = `<svg viewBox="0 0 100 110" aria-hidden="true">
-            <!-- Wooden Post -->
             <rect x="47" y="45" width="6" height="60" rx="2" fill="#92400E"/>
             <rect x="18" y="48" width="64" height="6" rx="3" fill="#92400E"/>
-            <!-- Straw Hands -->
             <path d="M18 46 L9 42 M18 51 L8 51 M18 55 L10 59" stroke="#FACC15" stroke-width="3" stroke-linecap="round"/>
             <path d="M82 46 L91 42 M82 51 L92 51 M82 55 L90 59" stroke="#FACC15" stroke-width="3" stroke-linecap="round"/>
-            <!-- Flannel Shirt & Overalls -->
             <path d="M22 44 L78 44 L78 58 L66 58 L68 86 L32 86 L34 58 L22 58 Z" fill="#EA580C" stroke="#9A3412" stroke-width="1.5"/>
             <path d="M35 54 L65 54 L68 86 L53 86 L50 76 L47 86 L32 86 Z" fill="#2563EB" stroke="#1E3A8A" stroke-width="1.5"/>
             <rect x="54" y="64" width="8" height="8" rx="1.5" fill="#FBBF24" stroke="#92400E" stroke-width="1.2"/>
-            <!-- Straw Hair & Burlap Head -->
             <path d="M30 33 L24 38 M32 36 L26 42 M70 33 L76 38 M68 36 L74 42" stroke="#FACC15" stroke-width="3" stroke-linecap="round"/>
             <circle cx="50" cy="32" r="14" fill="#FDE68A" stroke="#B45309" stroke-width="1.6"/>
             <circle cx="45" cy="30" r="2" fill="#1C1917"/>
             <circle cx="55" cy="30" r="2" fill="#1C1917"/>
             <polygon points="50,31 47,36 53,36" fill="#F97316"/>
             <path d="M43 38 Q50 43 57 38" fill="none" stroke="#78350F" stroke-width="1.8" stroke-linecap="round"/>
-            <!-- Straw Hat -->
             <ellipse cx="50" cy="21" rx="26" ry="5" fill="#FACC15" stroke="#CA8A04" stroke-width="1.5"/>
             <path d="M36 21 L40 8 Q50 5 60 8 L64 21 Z" fill="#FDE047" stroke="#CA8A04" stroke-width="1.5"/>
             <rect x="37" y="16" width="26" height="4" fill="#DC2626"/>
         </svg>`;
 
         const COZY_CABIN_SVG = `<svg viewBox="0 0 100 100" aria-hidden="true">
-            <!-- Chimney & Smoke -->
             <rect x="66" y="18" width="11" height="24" fill="#78716C" stroke="#44403C" stroke-width="1.5"/>
             <circle cx="72" cy="12" r="4" fill="#E2E8F0" opacity="0.85"/>
             <circle cx="77" cy="7" r="5" fill="#F1F5F9" opacity="0.75"/>
-            <!-- Log Cabin Walls -->
             <rect x="20" y="46" width="60" height="42" rx="3" fill="#B45309" stroke="#78350F" stroke-width="2"/>
             <line x1="20" y1="56" x2="80" y2="56" stroke="#78350F" stroke-width="2"/>
             <line x1="20" y1="66" x2="80" y2="66" stroke="#78350F" stroke-width="2"/>
             <line x1="20" y1="76" x2="80" y2="76" stroke="#78350F" stroke-width="2"/>
-            <!-- Pitched Roof -->
             <polygon points="12,48 50,18 88,48" fill="#78350F" stroke="#451A03" stroke-width="2" stroke-linejoin="round"/>
-            <!-- Wooden Door & Warm Glowing Window -->
             <rect x="30" y="62" width="16" height="26" rx="2" fill="#451A03"/>
             <circle cx="42" cy="76" r="1.8" fill="#FBBF24"/>
             <rect x="54" y="58" width="16" height="15" rx="2" fill="#FEF08A" stroke="#451A03" stroke-width="2"/>
@@ -935,9 +1825,9 @@
         ];
 
         const HOLD_NAMES = { 1: 'Normal', 2: 'Longer', 3: 'Longest' };
-        const SAVE_KEY = 'tsm_movie_v1';
-        const READ_KEY = 'tsm_read_aloud';
-        const CODE_PREFIX = 'TSM1.';
+        const SAVE_KEY = 'tsa_project_v1';
+        const READ_KEY = 'tsa_read_aloud';
+        const CODE_PREFIX = 'TSA1.';
 
         // --- 3. APPLICATION STATE ---
         let slides = [];
@@ -945,17 +1835,17 @@
         let selectedItemId = null;
         let currentTextStyle = 'bubble';
         let defaultPilgrimSkin = '#F6C8A8';
-        let movieTitle = '';
+        let projectTitle = '';
         let isExample = false;
         let ideaText = '';
         let undoStack = [];
         let readAloud = false;
 
-        // Movie Playback State
-        let isPlayingMovie = false;
-        let movieFrameIndex = 0;
-        let movieSpeedMs = 650;
-        let movieTimer = null;
+        // Animation Playback State
+        let isPlayingAnimation = false;
+        let previewFrameIndex = 0;
+        let playbackSpeedMs = 650;
+        let playbackTimer = null;
 
         function generateId() {
             return 'id_' + Math.random().toString(36).slice(2, 11);
@@ -978,7 +1868,7 @@
             return Object.assign({ id: generateId(), type: 'text', text, style, x, y, scale: 1, flipX: 1, rot: 0 }, extra || {});
         }
 
-        function buildExampleMovie() {
+        function buildExampleAnimation() {
             return [
                 {
                     id: generateId(), sceneId: 'meadow', soundId: 'gobble', hold: 2,
@@ -1010,13 +1900,13 @@
             ];
         }
 
-        // --- 4. SAVING, LOADING & MOVIE CODES ---
+        // --- 4. SAVING, LOADING & PROJECT CODES ---
         function round(n) { return Math.round(n * 100) / 100; }
 
         function toCompact() {
             return {
                 v: 1,
-                t: movieTitle,
+                t: projectTitle,
                 e: isExample ? 1 : 0,
                 s: slides.map(s => ({
                     c: s.sceneId,
@@ -1059,7 +1949,6 @@
             return null;
         }
 
-        // Reads a saved movie and checks every value, so a broken code can't break the studio.
         function fromCompact(obj) {
             if (!obj || !Array.isArray(obj.s) || obj.s.length === 0) throw new Error('No slides');
             const loaded = obj.s.slice(0, 150).map(s => ({
@@ -1076,19 +1965,16 @@
             };
         }
 
-        function encodeMovie() {
-            const bytes = new TextEncoder().encode(JSON.stringify(toCompact()));
-            let bin = '';
-            bytes.forEach(b => { bin += String.fromCharCode(b); });
-            return CODE_PREFIX + btoa(bin);
+        function encodeProject() {
+            const jsonStr = JSON.stringify(toCompact());
+            return CODE_PREFIX + encodeURIComponent(jsonStr);
         }
 
-        function decodeMovie(code) {
-            const clean = String(code).replace(/\s+/g, '');
-            if (!clean.startsWith(CODE_PREFIX)) throw new Error('Not a movie code');
-            const bin = atob(clean.slice(CODE_PREFIX.length));
-            const bytes = Uint8Array.from(bin, ch => ch.charCodeAt(0));
-            return fromCompact(JSON.parse(new TextDecoder().decode(bytes)));
+        function decodeProject(code) {
+            const clean = String(code).trim();
+            if (!clean.startsWith(CODE_PREFIX)) throw new Error('Not a project code');
+            const jsonStr = decodeURIComponent(clean.slice(CODE_PREFIX.length));
+            return fromCompact(JSON.parse(jsonStr));
         }
 
         let storageWorks = true;
@@ -1108,7 +1994,7 @@
                 if (!raw) return false;
                 const data = fromCompact(JSON.parse(raw));
                 slides = data.slides;
-                movieTitle = data.title;
+                projectTitle = data.title;
                 isExample = data.isExample;
                 return true;
             } catch (err) {
@@ -1119,17 +2005,19 @@
         function updateAutosaveNote() {
             const note = document.getElementById('autosave-note');
             if (storageWorks) {
-                note.textContent = '✅ Your movie saves by itself on this computer.';
-                note.className = 'text-sm font-bold text-emerald-800 bg-emerald-50 rounded-2xl px-3 py-2';
+                note.textContent = '✅ Your animation saves by itself on this computer.';
+                note.style.color = '#065F46';
+                note.style.background = '#ECFDF5';
             } else {
-                note.textContent = '⚠️ This computer can\'t save your movie. Copy your movie code to keep it!';
-                note.className = 'text-sm font-bold text-rose-800 bg-rose-50 rounded-2xl px-3 py-2';
+                note.textContent = '⚠️ This computer can\'t save your animation. Copy your project code to keep it!';
+                note.style.color = '#9F1239';
+                note.style.background = '#FFF1F2';
             }
         }
 
         // --- 5. UNDO ---
         function pushUndo() {
-            undoStack.push(JSON.stringify({ slides, currentSlideIndex, movieTitle, isExample }));
+            undoStack.push(JSON.stringify({ slides, currentSlideIndex, projectTitle, isExample }));
             if (undoStack.length > 60) undoStack.shift();
             document.getElementById('btn-undo').disabled = false;
         }
@@ -1142,7 +2030,7 @@
             const prev = JSON.parse(undoStack.pop());
             slides = prev.slides;
             currentSlideIndex = Math.min(prev.currentSlideIndex, slides.length - 1);
-            movieTitle = prev.movieTitle;
+            projectTitle = prev.projectTitle;
             isExample = prev.isExample;
             selectedItemId = null;
             document.getElementById('btn-undo').disabled = undoStack.length === 0;
@@ -1150,7 +2038,6 @@
             showToast('Undone!', '↩️');
         }
 
-        // Redraw everything and save
         function refresh() {
             renderCurrentSlide();
             renderFilmstrip();
@@ -1158,70 +2045,112 @@
             saveLocal();
         }
 
-        // --- 6. SOUND SYNTHESIZER (Tone.js) ---
-        function disposeLater(node, ms) {
-            setTimeout(() => { try { node.dispose(); } catch (err) { /* already gone */ } }, ms);
+        // --- 6. NATIVE WEB AUDIO API SYNTHESIZER (Zero External Libraries) ---
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
         }
 
-        async function playSoundEffect(soundId) {
+        function playTone(ctx, freq, startTime, duration, type = 'sine', gainPeak = 0.25) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, startTime);
+
+            gain.gain.setValueAtTime(0.001, startTime);
+            gain.gain.linearRampToValueAtTime(gainPeak, startTime + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + duration + 0.02);
+        }
+
+        function playSoundEffect(soundId) {
             if (!soundId) return;
             try {
-                if (Tone.context.state !== 'running') {
-                    await Tone.start();
-                }
-                const now = Tone.now();
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const now = ctx.currentTime;
 
                 if (soundId === 'gobble') {
-                    const synth = new Tone.Synth({
-                        oscillator: { type: 'sawtooth' },
-                        envelope: { attack: 0.02, decay: 0.1, sustain: 0.4, release: 0.15 }
-                    }).toDestination();
-                    ['G4', 'E4', 'A4', 'F4', 'G4', 'D4'].forEach((note, idx) => {
-                        synth.triggerAttackRelease(note, '32n', now + idx * 0.065);
+                    const notes = [392.0, 329.63, 440.0, 349.23, 392.0, 293.66];
+                    notes.forEach((freq, idx) => {
+                        playTone(ctx, freq, now + idx * 0.065, 0.08, 'sawtooth', 0.16);
                     });
-                    disposeLater(synth, 2000);
                 } else if (soundId === 'boing') {
-                    const synth = new Tone.Synth({
-                        oscillator: { type: 'sine' },
-                        envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.2 }
-                    }).toDestination();
-                    synth.triggerAttack('C3', now);
-                    synth.frequency.exponentialRampToValueAtTime(520, now + 0.25);
-                    synth.triggerRelease(now + 0.35);
-                    disposeLater(synth, 2000);
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(130.81, now);
+                    osc.frequency.exponentialRampToValueAtTime(523.25, now + 0.28);
+
+                    gain.gain.setValueAtTime(0.01, now);
+                    gain.gain.linearRampToValueAtTime(0.28, now + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.38);
                 } else if (soundId === 'tada') {
-                    const poly = new Tone.PolySynth(Tone.Synth).toDestination();
-                    poly.triggerAttackRelease(['C4', 'E4', 'G4'], '16n', now);
-                    poly.triggerAttackRelease(['C4', 'E4', 'G4', 'C5'], '4n', now + 0.18);
-                    disposeLater(poly, 3000);
+                    [261.63, 329.63, 392.0].forEach(f => playTone(ctx, f, now, 0.16, 'triangle', 0.18));
+                    [261.63, 329.63, 392.0, 523.25].forEach(f => playTone(ctx, f, now + 0.18, 0.55, 'triangle', 0.2));
                 } else if (soundId === 'crunch') {
-                    const noise = new Tone.NoiseSynth({
-                        noise: { type: 'pink' },
-                        envelope: { attack: 0.01, decay: 0.12, sustain: 0, release: 0.05 }
-                    }).toDestination();
-                    noise.triggerAttackRelease('16n', now);
-                    noise.triggerAttackRelease('16n', now + 0.1);
-                    disposeLater(noise, 2000);
-                } else if (soundId === 'pop') {
-                    const synth = new Tone.MembraneSynth().toDestination();
-                    synth.triggerAttackRelease('G4', '32n', now);
-                    disposeLater(synth, 2000);
-                } else if (soundId === 'chime') {
-                    const synth = new Tone.Synth({
-                        oscillator: { type: 'triangle' },
-                        envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 }
-                    }).toDestination();
-                    ['C5', 'E5', 'G5', 'B5', 'C6'].forEach((n, i) => {
-                        synth.triggerAttackRelease(n, '32n', now + i * 0.06);
+                    const bufferSize = Math.floor(ctx.sampleRate * 0.12);
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+                    }
+                    [0, 0.11].forEach(offset => {
+                        const noise = ctx.createBufferSource();
+                        noise.buffer = buffer;
+                        const filter = ctx.createBiquadFilter();
+                        filter.type = 'bandpass';
+                        filter.frequency.value = 1200;
+                        const gain = ctx.createGain();
+                        gain.gain.setValueAtTime(0.35, now + offset);
+                        noise.connect(filter);
+                        filter.connect(gain);
+                        gain.connect(ctx.destination);
+                        noise.start(now + offset);
                     });
-                    disposeLater(synth, 2000);
+                } else if (soundId === 'pop') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(620, now + 0.07);
+                    gain.gain.setValueAtTime(0.28, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (soundId === 'chime') {
+                    const notes = [523.25, 659.25, 783.99, 987.77, 1046.5];
+                    notes.forEach((freq, idx) => {
+                        playTone(ctx, freq, now + idx * 0.06, 0.28, 'triangle', 0.18);
+                    });
                 }
             } catch (err) {
                 console.warn('Audio playback skipped:', err);
             }
         }
 
-        // --- 7. READ TO ME (speaks button names for early readers) ---
+        // --- 7. READ TO ME ---
         const canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
 
         function cleanForSpeech(text) {
@@ -1248,8 +2177,7 @@
             document.getElementById('read-label').textContent = on ? 'Read to Me: On' : 'Read to Me: Off';
             const btn = document.getElementById('btn-read');
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            btn.classList.toggle('ring-4', on);
-            btn.classList.toggle('ring-white', on);
+            btn.classList.toggle('ring-active', on);
             try { localStorage.setItem(READ_KEY, on ? '1' : '0'); } catch (err) { /* fine */ }
             if (!on && canSpeak) window.speechSynthesis.cancel();
         }
@@ -1277,7 +2205,7 @@
                 const isSelected = tone.hex.toUpperCase() === normalizedActive;
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = `skin-swatch rounded-full border-2 border-amber-900/40 shadow-sm cursor-pointer ${isSelected ? 'active' : ''}`;
+                btn.className = `skin-swatch ${isSelected ? 'active' : ''}`;
                 btn.style.backgroundColor = tone.hex;
                 btn.title = tone.name;
                 btn.setAttribute('aria-label', `${tone.name} skin color`);
@@ -1296,7 +2224,6 @@
                 renderToolboxSkinPicker();
                 renderStickerToolbox();
 
-                // Also update the selected Pilgrim on stage if one is currently selected
                 const sel = getSelectedItem();
                 if (sel && sel.type === 'sticker' && STICKER_BY_ID[sel.stickerId]?.isPilgrim) {
                     pushUndo();
@@ -1344,14 +2271,14 @@
             document.getElementById('sticker-count').textContent = `${STICKERS.length} Fun Items`;
             STICKERS.forEach(sticker => {
                 const btn = document.createElement('button');
-                btn.className = 'btn-bounce bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 rounded-2xl p-2 flex flex-col items-center justify-center gap-1 shadow-sm min-w-0';
+                btn.className = 'btn-bounce sticker-btn';
                 btn.title = sticker.name;
                 btn.dataset.say = sticker.name;
                 btn.innerHTML = `
-                    <div class="toolbox-svg text-3xl sm:text-4xl leading-none flex items-center justify-center h-10">
+                    <div class="toolbox-svg">
                         ${getStickerVisualHTML(sticker, defaultPilgrimSkin)}
                     </div>
-                    <span class="text-[11px] font-bold text-amber-900 truncate w-full text-center">${sticker.name}</span>
+                    <span class="sticker-name">${sticker.name}</span>
                 `;
                 btn.onclick = () => addStickerToSlide(sticker);
                 grid.appendChild(btn);
@@ -1363,13 +2290,11 @@
             grid.innerHTML = '';
             SCENES.forEach(scene => {
                 const btn = document.createElement('button');
-                btn.className = 'btn-bounce rounded-2xl overflow-hidden border-3 border-amber-300 shadow-sm flex flex-col';
+                btn.className = 'btn-bounce scene-btn';
                 btn.dataset.say = scene.name;
                 btn.innerHTML = `
-                    <div class="w-full h-14" style="${scene.bgStyle}"></div>
-                    <div class="bg-amber-50 py-1.5 px-2 text-xs font-extrabold text-amber-950 text-center w-full">
-                        ${scene.name}
-                    </div>
+                    <div class="scene-preview" style="${scene.bgStyle}"></div>
+                    <div class="scene-label">${scene.name}</div>
                 `;
                 btn.onclick = () => {
                     pushUndo();
@@ -1387,11 +2312,11 @@
             SOUNDS.forEach(sound => {
                 const btn = document.createElement('button');
                 btn.id = `sound-opt-${sound.id}`;
-                btn.className = 'btn-bounce bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 transition';
+                btn.className = 'btn-bounce sound-opt-btn';
                 btn.dataset.say = sound.name;
                 btn.innerHTML = `
-                    <span class="text-3xl">${sound.icon}</span>
-                    <span class="text-xs sm:text-sm font-extrabold text-indigo-950">${sound.name}</span>
+                    <span style="font-size: 1.75rem;">${sound.icon}</span>
+                    <span style="font-size: 0.85rem; font-weight: 800; color: #1E1B4B;">${sound.name}</span>
                 `;
                 btn.onclick = () => {
                     playSoundEffect(sound.id);
@@ -1406,7 +2331,6 @@
             pushUndo();
             const slide = slides[currentSlideIndex];
             const extra = sticker.isPilgrim ? { skin: defaultPilgrimSkin } : {};
-            // Slight random offset near center so multiple items don't stack invisibly
             const newItem = stickerItem(sticker.id, 50 + (Math.random() * 14 - 7), 50 + (Math.random() * 14 - 7), extra);
             slide.items.push(newItem);
             selectedItemId = newItem.id;
@@ -1516,7 +2440,6 @@
             updateSelectedPilgrimSkinUI();
         }
 
-        // Select without rebuilding the stage, so a drag can carry on with the same element
         function selectItem(id) {
             selectedItemId = id;
             document.querySelectorAll('#stage-items .stage-item').forEach(el => {
@@ -1540,7 +2463,6 @@
 
             document.getElementById('stage-background').setAttribute('style', scene.bgStyle);
 
-            // Onion Skin (Ghost Helper of previous slide)
             const onionLayer = document.getElementById('onion-layer');
             onionLayer.innerHTML = '';
             if (document.getElementById('toggle-onion').checked && currentSlideIndex > 0) {
@@ -1551,7 +2473,6 @@
                 });
             }
 
-            // Active Stage Items
             const itemsLayer = document.getElementById('stage-items');
             itemsLayer.innerHTML = '';
             document.getElementById('empty-hint').style.display =
@@ -1565,7 +2486,6 @@
 
             updateSelectedLabel();
 
-            // Slide tools
             document.getElementById('hold-label').textContent = HOLD_NAMES[slide.hold] || 'Normal';
             document.getElementById('btn-hold').dataset.say = `Stay on screen: ${HOLD_NAMES[slide.hold] || 'Normal'}`;
             document.getElementById('btn-move-earlier').disabled = currentSlideIndex === 0;
@@ -1592,7 +2512,6 @@
                     el.innerHTML = `<div class="sticker-emoji">${sticker.emoji}</div>`;
                 }
             } else {
-                // Words are never mirrored. Flip moves the speech bubble's tail instead.
                 el.style.transform = base;
                 el.innerHTML = item.style === 'bubble'
                     ? `<div class="bubble${item.flipX === -1 ? ' tail-right' : ''}">${escapeHTML(item.text)}</div>`
@@ -1603,7 +2522,6 @@
             return el;
         }
 
-        // Mouse, touch and pen dragging. The item stays under the finger where it was grabbed.
         function attachDragHandlers(el, item) {
             const stage = document.getElementById('stage-container');
 
@@ -1665,7 +2583,7 @@
 
                 const card = document.createElement('button');
                 card.setAttribute('style', scene.bgStyle);
-                card.className = `scene-box filmstrip-frame shrink-0 w-32 sm:w-36 aspect-video rounded-2xl overflow-hidden cursor-pointer border-3 ${isActive ? 'active border-orange-600' : 'border-amber-300 opacity-85 hover:opacity-100'}`;
+                card.className = `scene-box filmstrip-frame ${isActive ? 'active' : ''}`;
                 card.dataset.say = `Slide ${idx + 1}`;
                 card.setAttribute('aria-label', `Slide ${idx + 1}`);
                 if (isActive) {
@@ -1673,25 +2591,24 @@
                     activeCard = card;
                 }
 
-                // Same drawing as the stage, just smaller
                 slide.items.forEach(item => card.appendChild(createItemDOM(item, false)));
 
                 const badge = document.createElement('div');
-                badge.className = 'absolute top-1 left-1.5 bg-amber-950/75 text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full';
+                badge.className = 'frame-num-badge';
                 badge.textContent = `#${idx + 1}`;
                 card.appendChild(badge);
 
                 const pills = document.createElement('div');
-                pills.className = 'absolute bottom-1 right-1.5 flex gap-1';
+                pills.className = 'frame-pills';
                 if (slide.hold > 1) {
                     const holdPill = document.createElement('div');
-                    holdPill.className = 'bg-sky-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow';
+                    holdPill.className = 'pill-hold';
                     holdPill.textContent = `⏱️${slide.hold}x`;
                     pills.appendChild(holdPill);
                 }
                 if (slide.soundId) {
                     const soundPill = document.createElement('div');
-                    soundPill.className = 'bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow';
+                    soundPill.className = 'pill-sound';
                     soundPill.textContent = '🔊';
                     pills.appendChild(soundPill);
                 }
@@ -1707,7 +2624,6 @@
                 strip.appendChild(card);
             });
 
-            // Keep the scroll position, then make sure the slide you are on is visible
             strip.scrollLeft = keepScroll;
             if (activeCard) {
                 const left = activeCard.offsetLeft - 12;
@@ -1722,7 +2638,6 @@
             pushUndo();
             const current = slides[currentSlideIndex];
             let newSelectedId = null;
-            // Deep clone items (including Pilgrim skin color) so moving them on the new slide doesn't alter the previous slide
             const clonedItems = current.items.map(item => {
                 const copy = { ...item, id: generateId() };
                 if (item.id === selectedItemId) newSelectedId = copy.id;
@@ -1732,12 +2647,12 @@
             slides.splice(currentSlideIndex + 1, 0, {
                 id: generateId(),
                 sceneId: current.sceneId,
-                soundId: null, // Sound doesn't auto-repeat unless chosen, so it's not noisy!
+                soundId: null,
                 hold: 1,
                 items: clonedItems
             });
             currentSlideIndex++;
-            selectedItemId = newSelectedId; // keep the same sticker selected, ready to move
+            selectedItemId = newSelectedId;
             playSoundEffect('crunch');
             refresh();
             showToast(`Slide ${currentSlideIndex + 1} created! Move your items!`, '📸');
@@ -1789,17 +2704,17 @@
             showToast(msg[slide.hold], '⏱️');
         }
 
-        function startNewMovie() {
+        function startNewProject() {
             pushUndo();
             slides = [blankSlide('meadow')];
             currentSlideIndex = 0;
             selectedItemId = null;
-            movieTitle = '';
+            projectTitle = '';
             isExample = false;
             ideaText = '';
-            document.getElementById('movie-title').value = '';
+            document.getElementById('project-title').value = '';
             refresh();
-            showToast('New movie started! Tap Undo to get the old one back.', '🆕');
+            showToast('New animation started! Tap Undo to get the old one back.', '🆕');
         }
 
         // --- 12. STORY IDEAS & EXAMPLE NOTICE ---
@@ -1812,7 +2727,7 @@
                 startOwn.hidden = true;
                 bar.hidden = false;
             } else if (isExample) {
-                text.textContent = '⭐ This is an example movie. Watch it, change it, or start your own!';
+                text.textContent = '⭐ This is an example animation. Watch it, change it, or start your own!';
                 startOwn.hidden = false;
                 bar.hidden = false;
             } else {
@@ -1843,19 +2758,17 @@
         // --- 13. MODALS ---
         function openModal(id) {
             const m = document.getElementById(id);
-            m.classList.remove('hidden');
-            m.classList.add('flex');
+            m.classList.add('open');
         }
 
         function closeModal(id) {
-            if (id === 'movie-modal') stopMovieLoop();
+            if (id === 'preview-modal') stopPlaybackLoop();
             const m = document.getElementById(id);
-            m.classList.add('hidden');
-            m.classList.remove('flex');
+            m.classList.remove('open');
         }
 
         function anyModalOpen() {
-            return Array.from(document.querySelectorAll('.modal')).some(m => !m.classList.contains('hidden'));
+            return Array.from(document.querySelectorAll('.modal')).some(m => m.classList.contains('open'));
         }
 
         function openSoundModal() {
@@ -1882,21 +2795,21 @@
             SOUNDS.forEach(s => {
                 const btn = document.getElementById(`sound-opt-${s.id}`);
                 if (!btn) return;
-                ['ring-4', 'ring-indigo-500', 'bg-indigo-200'].forEach(c => btn.classList.toggle(c, s.id === activeSoundId));
+                btn.classList.toggle('selected', s.id === activeSoundId);
             });
         }
 
         function openSaveModal() {
-            document.getElementById('movie-title').value = movieTitle;
-            document.getElementById('code-out').value = encodeMovie();
+            document.getElementById('project-title').value = projectTitle;
+            document.getElementById('code-out').value = encodeProject();
             document.getElementById('code-in').value = '';
             updateAutosaveNote();
             openModal('save-modal');
         }
 
-        function copyMovieCode() {
+        function copyProjectCode() {
             const box = document.getElementById('code-out');
-            box.value = encodeMovie();
+            box.value = encodeProject();
             box.focus();
             box.select();
             box.setSelectionRange(0, box.value.length);
@@ -1907,113 +2820,107 @@
                 copied = false;
             }
             if (copied) {
-                showToast('Movie code copied! Paste it where your teacher says.', '📋');
+                showToast('Project code copied! Paste it where your teacher says.', '📋');
             } else {
                 showToast('Now press Ctrl and C together to copy your code.', '📋');
             }
         }
 
-        function openMovieCode() {
+        function openProjectCode() {
             const input = document.getElementById('code-in');
             if (!input.value.trim()) {
-                showToast('Paste a movie code in the box first!', '📂');
+                showToast('Paste a project code in the box first!', '📂');
                 input.focus();
                 return;
             }
             let data;
             try {
-                data = decodeMovie(input.value);
+                data = decodeProject(input.value);
             } catch (err) {
                 showToast('That code did not work. Copy the whole code and try again.', '🤔');
                 return;
             }
             pushUndo();
             slides = data.slides;
-            movieTitle = data.title;
+            projectTitle = data.title;
             isExample = false;
             ideaText = '';
             currentSlideIndex = 0;
             selectedItemId = null;
             closeModal('save-modal');
             refresh();
-            showToast('Movie opened! Tap Undo to go back to your old one.', '🎉');
+            showToast('Project opened! Tap Undo to go back to your old one.', '🎉');
         }
 
-        // --- 14. STOP MOTION MOVIE THEATER ---
-        function openMovieTheater(startIdx) {
-            document.getElementById('theater-title').textContent = movieTitle || 'Thanksgiving Movie Theater';
-            openModal('movie-modal');
-            movieFrameIndex = Math.max(0, Math.min(slides.length - 1, startIdx || 0));
-            isPlayingMovie = true;
+        // --- 14. STOP MOTION ANIMATION PREVIEW ---
+        function openAnimationPreview(startIdx) {
+            document.getElementById('preview-title').textContent = projectTitle || 'Thanksgiving Animation Preview';
+            openModal('preview-modal');
+            previewFrameIndex = Math.max(0, Math.min(slides.length - 1, startIdx || 0));
+            isPlayingAnimation = true;
             updatePlayPauseButton();
-            renderMovieFrame(movieFrameIndex);
+            renderPreviewFrame(previewFrameIndex);
             scheduleNextFrame();
         }
 
-        // Each slide waits for the current speed times its "stay on screen" setting
         function scheduleNextFrame() {
-            stopMovieLoop();
-            if (!isPlayingMovie) return;
-            const hold = slides[movieFrameIndex].hold || 1;
-            movieTimer = setTimeout(() => {
-                movieFrameIndex = (movieFrameIndex + 1) % slides.length;
-                renderMovieFrame(movieFrameIndex);
+            stopPlaybackLoop();
+            if (!isPlayingAnimation) return;
+            const hold = slides[previewFrameIndex].hold || 1;
+            playbackTimer = setTimeout(() => {
+                previewFrameIndex = (previewFrameIndex + 1) % slides.length;
+                renderPreviewFrame(previewFrameIndex);
                 scheduleNextFrame();
-            }, movieSpeedMs * hold);
+            }, playbackSpeedMs * hold);
         }
 
-        function stopMovieLoop() {
-            if (movieTimer) {
-                clearTimeout(movieTimer);
-                movieTimer = null;
+        function stopPlaybackLoop() {
+            if (playbackTimer) {
+                clearTimeout(playbackTimer);
+                playbackTimer = null;
             }
         }
 
-        function renderMovieFrame(idx) {
+        function renderPreviewFrame(idx) {
             const slide = slides[idx];
             const scene = SCENES.find(s => s.id === slide.sceneId) || SCENES[0];
 
-            document.getElementById('movie-frame-indicator').textContent = `${idx + 1} / ${slides.length}`;
-            document.getElementById('movie-screen-bg').setAttribute('style', scene.bgStyle);
+            document.getElementById('preview-frame-indicator').textContent = `${idx + 1} / ${slides.length}`;
+            document.getElementById('preview-screen-bg').setAttribute('style', scene.bgStyle);
 
-            const itemsContainer = document.getElementById('movie-screen-items');
+            const itemsContainer = document.getElementById('preview-screen-items');
             itemsContainer.innerHTML = '';
             slide.items.forEach(item => itemsContainer.appendChild(createItemDOM(item, false)));
 
-            const soundBadge = document.getElementById('movie-sound-indicator');
+            const soundBadge = document.getElementById('preview-sound-indicator');
             if (slide.soundId) {
                 const sObj = SOUNDS.find(s => s.id === slide.soundId);
-                document.getElementById('movie-sound-name').textContent = sObj.name;
-                soundBadge.classList.remove('hidden');
-                soundBadge.classList.add('flex', 'sound-playing');
+                document.getElementById('preview-sound-name').textContent = sObj.name;
+                soundBadge.classList.add('visible', 'sound-playing');
                 playSoundEffect(slide.soundId);
             } else {
-                soundBadge.classList.add('hidden');
-                soundBadge.classList.remove('flex', 'sound-playing');
+                soundBadge.classList.remove('visible', 'sound-playing');
             }
         }
 
-        function toggleMoviePlayPause() {
-            isPlayingMovie = !isPlayingMovie;
+        function togglePreviewPlayPause() {
+            isPlayingAnimation = !isPlayingAnimation;
             updatePlayPauseButton();
             scheduleNextFrame();
         }
 
         function updatePlayPauseButton() {
-            document.getElementById('play-pause-icon').textContent = isPlayingMovie ? '⏸️' : '▶️';
-            document.getElementById('play-pause-text').textContent = isPlayingMovie ? 'Pause' : 'Play';
+            document.getElementById('play-pause-icon').textContent = isPlayingAnimation ? '⏸️' : '▶️';
+            document.getElementById('play-pause-text').textContent = isPlayingAnimation ? 'Pause' : 'Play';
         }
 
-        function setMovieSpeed(ms) {
-            movieSpeedMs = ms;
+        function setPlaybackSpeed(ms) {
+            playbackSpeedMs = ms;
             document.querySelectorAll('.speed-btn').forEach(btn => {
                 const on = Number(btn.dataset.ms) === ms;
-                btn.classList.toggle('bg-amber-500', on);
-                btn.classList.toggle('text-amber-950', on);
-                btn.classList.toggle('bg-stone-700', !on);
-                btn.classList.toggle('text-gray-200', !on);
+                btn.classList.toggle('active', on);
             });
-            scheduleNextFrame(); // does nothing while paused; Play picks up the new speed
+            scheduleNextFrame();
         }
 
         // --- 15. UI HELPERS & EVENT LISTENERS ---
@@ -2022,13 +2929,11 @@
                 const btn = document.getElementById(`tab-${t}`);
                 const panel = document.getElementById(`panel-${t}`);
                 if (t === tabName) {
-                    btn.className = 'tab-btn bg-amber-500 text-white font-bold py-2 px-2 rounded-xl shadow text-sm sm:text-base flex items-center justify-center gap-1 transition';
+                    btn.classList.add('active');
                     panel.classList.remove('hidden');
-                    panel.classList.add('flex');
                 } else {
-                    btn.className = 'tab-btn text-amber-800 hover:bg-amber-200/60 font-bold py-2 px-2 rounded-xl text-sm sm:text-base flex items-center justify-center gap-1 transition';
+                    btn.classList.remove('active');
                     panel.classList.add('hidden');
-                    panel.classList.remove('flex');
                 }
             });
         }
@@ -2039,10 +2944,8 @@
 
         function setTextStyle(style) {
             currentTextStyle = style;
-            const on = 'px-3 py-1 rounded-xl text-sm font-bold bg-orange-500 text-white';
-            const off = 'px-3 py-1 rounded-xl text-sm font-bold bg-amber-100 text-amber-900';
-            document.getElementById('style-bubble').className = style === 'bubble' ? on : off;
-            document.getElementById('style-banner').className = style === 'banner' ? on : off;
+            document.getElementById('style-bubble').classList.toggle('active', style === 'bubble');
+            document.getElementById('style-banner').classList.toggle('active', style === 'banner');
         }
 
         let toastTimeout = null;
@@ -2050,9 +2953,9 @@
             const box = document.getElementById('toast-box');
             document.getElementById('toast-msg').textContent = message;
             document.getElementById('toast-icon').textContent = icon;
-            box.classList.remove('opacity-0');
+            box.classList.add('show');
             if (toastTimeout) clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => box.classList.add('opacity-0'), 3000);
+            toastTimeout = setTimeout(() => box.classList.remove('show'), 3000);
             speak(message, false);
         }
 
@@ -2065,7 +2968,6 @@
         function setupEventListeners() {
             const on = (id, handler) => document.getElementById(id).addEventListener('click', handler);
 
-            // Deselect item when tapping an empty part of the stage
             document.getElementById('stage-container').addEventListener('pointerdown', (e) => {
                 if (!e.target.closest('.stage-item')) selectItem(null);
             });
@@ -2080,7 +2982,7 @@
             on('btn-undo', undo);
             on('btn-idea', showStoryIdea);
             on('btn-idea-close', dismissIdeaBar);
-            on('btn-start-own', startNewMovie);
+            on('btn-start-own', startNewProject);
 
             on('btn-duplicate-slide', duplicateCurrentSlide);
             on('btn-blank-slide', addBlankSlide);
@@ -2088,14 +2990,14 @@
             on('btn-move-earlier', () => moveSlide(-1));
             on('btn-move-later', () => moveSlide(1));
             on('btn-hold', cycleHold);
-            on('btn-play-here', () => openMovieTheater(currentSlideIndex));
+            on('btn-play-here', () => openAnimationPreview(currentSlideIndex));
 
             on('btn-open-sound', openSoundModal);
 
-            on('btn-create-movie', () => openMovieTheater(0));
-            on('btn-close-movie', () => closeModal('movie-modal'));
-            on('btn-movie-play-pause', toggleMoviePlayPause);
-            on('btn-movie-replay', () => openMovieTheater(0));
+            on('btn-create-animation', () => openAnimationPreview(0));
+            on('btn-close-preview', () => closeModal('preview-modal'));
+            on('btn-preview-play-pause', togglePreviewPlayPause);
+            on('btn-preview-replay', () => openAnimationPreview(0));
 
             on('btn-help', () => openModal('help-modal'));
             on('btn-read', () => {
@@ -2104,21 +3006,19 @@
             });
 
             on('btn-save', openSaveModal);
-            on('btn-copy-code', copyMovieCode);
-            on('btn-open-code', openMovieCode);
-            on('btn-new-movie', () => { closeModal('save-modal'); startNewMovie(); });
-            document.getElementById('movie-title').addEventListener('input', (e) => {
-                movieTitle = e.target.value.trim().slice(0, 30);
+            on('btn-copy-code', copyProjectCode);
+            on('btn-open-code', openProjectCode);
+            on('btn-new-project', () => { closeModal('save-modal'); startNewProject(); });
+            document.getElementById('project-title').addEventListener('input', (e) => {
+                projectTitle = e.target.value.trim().slice(0, 30);
                 saveLocal();
-                document.getElementById('code-out').value = encodeMovie();
+                document.getElementById('code-out').value = encodeProject();
             });
 
-            // Tap the dark area around a pop-up to close it
             document.querySelectorAll('.modal').forEach(m => {
                 m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); });
             });
 
-            // Read to Me: say the name of any button as it is tapped
             document.addEventListener('click', (e) => {
                 if (!readAloud) return;
                 const b = e.target.closest('button');
@@ -2126,7 +3026,6 @@
                 speak(b.dataset.say || b.getAttribute('aria-label') || b.textContent, true);
             }, true);
 
-            // Keyboard helpers
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     document.querySelectorAll('.modal').forEach(m => closeModal(m.id));
@@ -2152,10 +3051,8 @@
 
         // --- 16. START ---
         function init() {
-            document.body.classList.add('min-h-screen', 'flex', 'flex-col', 'text-amber-950');
             if (!loadLocal()) {
-                // First visit: open with a short example so kids can see how it works
-                slides = buildExampleMovie();
+                slides = buildExampleAnimation();
                 isExample = true;
             }
             if (!canSpeak) {
