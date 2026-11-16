@@ -1,11 +1,28 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Thanksgiving Stop Motion Studio</title>
+    <!-- Tailwind CSS for responsive, kid-friendly UI -->
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <!-- Tone.js for kid-friendly synthesized sound effects without external URLs -->
+    <!-- Tone.js for synthesized sound effects without external audio URLs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Kid-friendly rounded fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            color-scheme: light;
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        html {
+            scroll-padding-top: env(safe-area-inset-top, 0px);
+        }
         body {
+            margin: 0;
+            padding: 0;
             font-family: 'Nunito', sans-serif;
             background-color: #FFF8EB;
             background-image: radial-gradient(#FDE68A 2px, transparent 2px);
@@ -14,6 +31,12 @@
             user-select: none;
             -webkit-user-select: none;
             overflow-x: hidden;
+        }
+        img {
+            max-width: 100%;
+        }
+        [hidden]:not([hidden="until-found"]) {
+            display: none !important;
         }
         input, textarea {
             user-select: text;
@@ -37,7 +60,23 @@
             opacity: 0.45;
             cursor: not-allowed;
         }
-        .border-3 { border-width: 3px; }
+        .border-3 {
+            border-width: 3px;
+        }
+
+        /* Skin tone swatches have custom compact touch sizing inside grid/flex rows */
+        .skin-swatch {
+            min-height: 36px;
+            min-width: 36px;
+            transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
+        }
+        .skin-swatch:hover {
+            transform: scale(1.12);
+        }
+        .skin-swatch.active {
+            transform: scale(1.14);
+            box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 6px #EA580C;
+        }
 
         /* Custom Scrollbar for Filmstrip & Stickers */
         ::-webkit-scrollbar { height: 10px; width: 10px; }
@@ -52,7 +91,7 @@
         .btn-bounce:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); }
         .btn-bounce:active:not(:disabled) { transform: translateY(2px) scale(0.96); }
         @media (prefers-reduced-motion: reduce) {
-            .btn-bounce, .filmstrip-frame { transition: none; }
+            .btn-bounce, .filmstrip-frame, .skin-swatch { transition: none; }
             .sound-playing { animation: none !important; }
         }
 
@@ -93,9 +132,20 @@
             pointer-events: none;
             filter: drop-shadow(0 0.04em 0.06em rgba(0, 0, 0, 0.3));
         }
-        .sticker-svg { pointer-events: none; filter: drop-shadow(0 0.15em 0.2em rgba(0, 0, 0, 0.3)); }
-        .sticker-svg svg { width: 3.8em; height: 3.8em; display: block; }
-        .toolbox-svg svg { width: 40px; height: 40px; display: block; }
+        .sticker-svg {
+            pointer-events: none;
+            filter: drop-shadow(0 0.15em 0.2em rgba(0, 0, 0, 0.3));
+        }
+        .sticker-svg svg {
+            width: 4.1em;
+            height: 4.1em;
+            display: block;
+        }
+        .toolbox-svg svg {
+            width: 42px;
+            height: 42px;
+            display: block;
+        }
 
         .bubble {
             position: relative;
@@ -156,6 +206,8 @@
         }
         .sound-playing { animation: pulse-ring 1s infinite ease-in-out; }
     </style>
+</head>
+<body>
 
     <!-- Top Header Bar -->
     <header class="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white py-3 px-4 md:px-6 shadow-md border-b-4 border-amber-700">
@@ -213,11 +265,25 @@
             </div>
 
             <!-- Panel 1: Thanksgiving Stickers -->
-            <div id="panel-stickers" class="flex flex-col gap-2">
+            <div id="panel-stickers" class="flex flex-col gap-2.5">
                 <p class="text-sm font-bold text-amber-800 flex items-center justify-between">
                     <span>Tap to add to your slide:</span>
                     <span id="sticker-count" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"></span>
                 </p>
+
+                <!-- Quick Pilgrim Skin Color Bar in Sticker Toolbox -->
+                <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-2.5 flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold text-amber-900 flex items-center gap-1">
+                            <span>🎨</span> Pilgrim Skin Color:
+                        </span>
+                        <span id="toolbox-skin-name" class="text-[11px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">Fair Peach</span>
+                    </div>
+                    <div id="toolbox-skin-swatches" class="flex flex-wrap items-center justify-between gap-1.5" role="group" aria-label="Pilgrim skin color swatches">
+                        <!-- Swatches populated via JS -->
+                    </div>
+                </div>
+
                 <div id="sticker-grid" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-1">
                     <!-- Populated via JS -->
                 </div>
@@ -262,6 +328,20 @@
                     <span class="text-xs font-extrabold uppercase tracking-wider text-amber-700">Selected Item Tools</span>
                     <span id="selected-label" class="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full truncate">Tap an item on stage</span>
                 </div>
+
+                <!-- Dynamic Pilgrim Skin Color Picker (appears when a Pilgrim is selected on the stage) -->
+                <div id="selected-pilgrim-skin-bar" hidden class="mb-2.5 bg-orange-50 border-2 border-orange-300 rounded-2xl p-2.5 flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold text-orange-950 flex items-center gap-1">
+                            <span>🎨</span> Change Pilgrim Skin Color:
+                        </span>
+                        <span id="selected-skin-name" class="text-[11px] font-bold text-orange-800 bg-white px-2 py-0.5 rounded-full border border-orange-200">Fair Peach</span>
+                    </div>
+                    <div id="selected-skin-swatches" class="flex flex-wrap items-center justify-between gap-1.5" role="group" aria-label="Change selected Pilgrim skin color">
+                        <!-- Swatches populated via JS -->
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-4 gap-2">
                     <button onclick="resizeSelected(0.15)" data-say="Bigger" class="btn-bounce bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-sky-300">
                         <span class="text-base">🔍+</span> Bigger
@@ -351,7 +431,7 @@
                 <!-- Empty Stage Hint -->
                 <div id="empty-hint" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center p-4">
                     <div class="bg-white/85 backdrop-blur-sm px-6 py-4 rounded-3xl shadow-md border-2 border-amber-300">
-                        <p class="text-lg sm:text-xl font-extrabold text-amber-900">👈 Tap a Turkey, Pumpkin, or Pie to start!</p>
+                        <p class="text-lg sm:text-xl font-extrabold text-amber-900">👈 Tap a Pilgrim, Turkey, or Fox to start!</p>
                         <p class="text-xs sm:text-sm font-bold text-amber-700 mt-1">Then click "Next Slide" below to move it!</p>
                     </div>
                 </div>
@@ -531,7 +611,7 @@
             <ol class="space-y-3 text-amber-950 font-bold text-sm sm:text-base mb-5">
                 <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
                     <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">1</span>
-                    <span>Pick festive stickers (like turkeys &amp; pies) and add words to your first slide.</span>
+                    <span>Pick festive stickers (like Pilgrims, turkeys &amp; foxes) and add words to your first slide. Tap a Pilgrim to change their skin color!</span>
                 </li>
                 <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
                     <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">2</span>
@@ -539,7 +619,7 @@
                 </li>
                 <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
                     <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">3</span>
-                    <span>Move or turn your turkey a little bit on the new slide. Follow the <strong>👻 Ghost Helper</strong>!</span>
+                    <span>Move or turn your characters a little bit on the new slide. Follow the <strong>👻 Ghost Helper</strong>!</span>
                 </li>
                 <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
                     <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">4</span>
@@ -568,12 +648,237 @@
          * Designed for Grades 1-4: Simple, tactile, colorful, and self-contained.
          */
 
-        // --- 1. FESTIVE ASSETS ---
+        // --- 1. PILGRIM SKIN TONES & CUSTOM STORYBOOK SVGS ---
+        const SKIN_TONES = [
+            { id: 'porcelain', name: 'Porcelain', hex: '#FDE2D2' },
+            { id: 'peach', name: 'Fair Peach', hex: '#F6C8A8' },
+            { id: 'beige', name: 'Warm Beige', hex: '#E5AC84' },
+            { id: 'olive', name: 'Golden Olive', hex: '#CFA074' },
+            { id: 'tan', name: 'Warm Tan', hex: '#B87D52' },
+            { id: 'medium_brown', name: 'Medium Brown', hex: '#8D5524' },
+            { id: 'deep_brown', name: 'Deep Brown', hex: '#5C3818' },
+            { id: 'rich_dark', name: 'Rich Dark', hex: '#3D2314' }
+        ];
+        const VALID_SKIN_HEX = new Set(SKIN_TONES.map(t => t.hex.toUpperCase()));
+
+        /**
+         * Generates a full-bodied Pilgrim Boy SVG with customizable skin color.
+         */
+        function getPilgrimBoySVG(skinColor) {
+            const skin = skinColor || '#F6C8A8';
+            return `<svg viewBox="0 0 100 110" aria-hidden="true">
+                <!-- White Stockings -->
+                <rect x="37" y="76" width="9" height="19" rx="3" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/>
+                <rect x="54" y="76" width="9" height="19" rx="3" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/>
+                <!-- Pilgrim Shoes & Gold Buckles -->
+                <path d="M31 95 Q31 91 39 91 L47 91 L47 102 L29 102 Q27 98 31 95 Z" fill="#1C1917"/>
+                <rect x="36" y="92" width="6" height="5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.8"/>
+                <path d="M53 91 L61 91 Q69 91 69 95 Q73 98 71 102 L53 102 Z" fill="#1C1917"/>
+                <rect x="58" y="92" width="6" height="5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.8"/>
+                <!-- Welcoming Arms & Hands -->
+                <path d="M32 51 L17 65 L23 71 L35 59 Z" fill="#44403C" stroke="#292524" stroke-width="1.5" stroke-linejoin="round"/>
+                <rect x="16" y="64" width="8" height="4" rx="1.5" transform="rotate(42 20 66)" fill="#FFFFFF"/>
+                <circle cx="17" cy="70" r="5" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
+                <path d="M68 51 L83 65 L77 71 L65 59 Z" fill="#44403C" stroke="#292524" stroke-width="1.5" stroke-linejoin="round"/>
+                <rect x="76" y="64" width="8" height="4" rx="1.5" transform="rotate(-42 80 66)" fill="#FFFFFF"/>
+                <circle cx="83" cy="70" r="5" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
+                <!-- Breeches & Coat -->
+                <path d="M34 68 L66 68 L68 80 L52 80 L50 74 L48 80 L32 80 Z" fill="#292524"/>
+                <path d="M32 49 L68 49 L72 72 L28 72 Z" fill="#44403C" stroke="#292524" stroke-width="1.5" stroke-linejoin="round"/>
+                <!-- Belt & Gold Buckle -->
+                <rect x="30" y="61" width="40" height="5.5" fill="#1C1917"/>
+                <rect x="45" y="59.5" width="10" height="8.5" rx="1.5" fill="none" stroke="#FBBF24" stroke-width="2.2"/>
+                <!-- Crisp White Pilgrim Collar -->
+                <path d="M36 48 L50 56 L64 48 L60 45 L40 45 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2" stroke-linejoin="round"/>
+                <!-- Neck, Ears & Head -->
+                <rect x="45" y="42" width="10" height="7" rx="2" fill="${skin}"/>
+                <circle cx="33" cy="34" r="4" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
+                <circle cx="67" cy="34" r="4" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
+                <ellipse cx="50" cy="33" rx="16" ry="14.5" fill="${skin}" stroke="#78350F" stroke-width="1.4"/>
+                <!-- Hair Peeking Under Hat -->
+                <path d="M34 29 Q35 21 50 21 Q65 21 66 29 Q60 25 50 25 Q40 25 34 29 Z" fill="#5C3A21"/>
+                <!-- Friendly Eyes, Rosy Cheeks & Smile -->
+                <circle cx="44" cy="32" r="2.2" fill="#1C1917"/>
+                <circle cx="44.7" cy="31.3" r="0.7" fill="#FFFFFF"/>
+                <circle cx="56" cy="32" r="2.2" fill="#1C1917"/>
+                <circle cx="56.7" cy="31.3" r="0.7" fill="#FFFFFF"/>
+                <ellipse cx="40" cy="36" rx="2.8" ry="1.8" fill="#FB7185" opacity="0.55"/>
+                <ellipse cx="60" cy="36" rx="2.8" ry="1.8" fill="#FB7185" opacity="0.55"/>
+                <path d="M44.5 38.5 Q50 43.5 55.5 38.5" fill="none" stroke="#78350F" stroke-width="2" stroke-linecap="round"/>
+                <!-- Tall Pilgrim Hat with Band & Gold Buckle -->
+                <path d="M35 21 L38 6 Q50 3 62 6 L65 21 Z" fill="#292524" stroke="#1C1917" stroke-width="1.4"/>
+                <rect x="36" y="15.5" width="28" height="4.5" fill="#D97706"/>
+                <rect x="45.5" y="14.5" width="9" height="6.5" rx="1" fill="none" stroke="#FBBF24" stroke-width="2"/>
+                <ellipse cx="50" cy="21.5" rx="25" ry="4.5" fill="#1C1917"/>
+            </svg>`;
+        }
+
+        /**
+         * Generates a full-bodied Pilgrim Girl SVG with customizable skin color.
+         */
+        function getPilgrimGirlSVG(skinColor) {
+            const skin = skinColor || '#F6C8A8';
+            return `<svg viewBox="0 0 100 110" aria-hidden="true">
+                <!-- Stockings & Buckled Pilgrim Shoes -->
+                <rect x="39" y="83" width="7" height="13" rx="2" fill="#F8FAFC"/>
+                <rect x="54" y="83" width="7" height="13" rx="2" fill="#F8FAFC"/>
+                <path d="M32 97 Q32 93 40 93 L47 93 L47 103 L30 103 Q28 100 32 97 Z" fill="#1C1917"/>
+                <rect x="37" y="94" width="5.5" height="4.5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.6"/>
+                <path d="M53 93 L60 93 Q68 93 68 97 Q72 100 70 103 L53 103 Z" fill="#1C1917"/>
+                <rect x="57.5" y="94" width="5.5" height="4.5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.6"/>
+                <!-- Arms & Hands -->
+                <path d="M33 50 L18 64 L24 70 L36 58 Z" fill="#3B4252" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
+                <rect x="17" y="63" width="8" height="4" rx="1.5" transform="rotate(42 21 65)" fill="#FFFFFF"/>
+                <circle cx="18" cy="69" r="4.8" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
+                <path d="M67 50 L82 64 L76 70 L64 58 Z" fill="#3B4252" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
+                <rect x="75" y="63" width="8" height="4" rx="1.5" transform="rotate(-42 79 65)" fill="#FFFFFF"/>
+                <circle cx="82" cy="69" r="4.8" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
+                <!-- Full Pilgrim Dress -->
+                <path d="M34 48 L66 48 L76 87 L24 87 Z" fill="#3B4252" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
+                <!-- Crisp White Apron -->
+                <path d="M36 60 L64 60 L69 86 L31 86 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.3" stroke-linejoin="round"/>
+                <rect x="35" y="57" width="30" height="4.5" rx="1.5" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1"/>
+                <!-- White Pilgrim Shawl Collar -->
+                <path d="M35 48 L50 57 L65 48 L60 44 L40 44 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2" stroke-linejoin="round"/>
+                <!-- White Pilgrim Bonnet / Coif -->
+                <path d="M30 35 Q28 13 50 13 Q72 13 70 35 Q68 43 62 43 L38 43 Q32 43 30 35 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.6"/>
+                <path d="M38 42 L34 51" stroke="#E2E8F0" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M62 42 L66 51" stroke="#E2E8F0" stroke-width="2.5" stroke-linecap="round"/>
+                <!-- Neck & Face -->
+                <rect x="45.5" y="41" width="9" height="7" rx="2" fill="${skin}"/>
+                <ellipse cx="50" cy="32.5" rx="15" ry="14" fill="${skin}" stroke="#78350F" stroke-width="1.4"/>
+                <!-- Hair Bangs Under Bonnet -->
+                <path d="M35 28 Q42 22 50 25 Q58 22 65 28 Q62 21 50 20 Q38 21 35 28 Z" fill="#78350F"/>
+                <!-- Friendly Eyes, Rosy Cheeks & Smile -->
+                <circle cx="44" cy="31.5" r="2.2" fill="#1C1917"/>
+                <circle cx="44.7" cy="30.8" r="0.7" fill="#FFFFFF"/>
+                <circle cx="56" cy="31.5" r="2.2" fill="#1C1917"/>
+                <circle cx="56.7" cy="30.8" r="0.7" fill="#FFFFFF"/>
+                <ellipse cx="40" cy="35.5" rx="2.8" ry="1.8" fill="#FB7185" opacity="0.55"/>
+                <ellipse cx="60" cy="35.5" rx="2.8" ry="1.8" fill="#FB7185" opacity="0.55"/>
+                <path d="M44.5 38 Q50 43 55.5 38" fill="none" stroke="#78350F" stroke-width="2" stroke-linecap="round"/>
+            </svg>`;
+        }
+
+        /**
+         * Full-bodied Autumn Fox SVG with bushy white-tipped tail, four legs with dark stockings,
+         * white chest ruff, pointed ears, and sweet smile.
+         */
+        const FULL_FOX_SVG = `<svg viewBox="0 0 120 100" aria-hidden="true">
+            <!-- Big Bushy Orange & Cream Tail -->
+            <path d="M38 62 Q12 52 10 68 Q9 83 34 78 Q44 75 46 66 Z" fill="#EA580C" stroke="#9A3412" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M19 58 Q10 60 10 68 Q10 76 20 77 Q24 68 19 58 Z" fill="#FFFBEB"/>
+            <!-- Back Legs with Dark Stockings -->
+            <path d="M44 68 L41 89 L47 89 L50 70 Z" fill="#C2410C"/>
+            <path d="M41 80 L41 90 L47 90 L47 80 Z" fill="#292524"/>
+            <path d="M51 68 L49 91 L56 91 L58 69 Z" fill="#EA580C"/>
+            <path d="M49 81 L49 92 L56 92 L56 81 Z" fill="#1C1917"/>
+            <!-- Front Legs with Dark Stockings -->
+            <path d="M74 68 L73 89 L79 89 L80 68 Z" fill="#C2410C"/>
+            <path d="M73 80 L73 90 L79 90 L79 80 Z" fill="#292524"/>
+            <path d="M81 67 L82 91 L89 91 L87 66 Z" fill="#EA580C"/>
+            <path d="M82 81 L82 92 L89 92 L89 81 Z" fill="#1C1917"/>
+            <!-- Sleek Fox Body -->
+            <ellipse cx="64" cy="61" rx="24" ry="14" fill="#F97316" stroke="#9A3412" stroke-width="1.6"/>
+            <!-- Fluffy White Chest Ruff -->
+            <path d="M76 49 Q91 53 88 68 Q79 71 74 63 Q72 55 76 49 Z" fill="#FFFBEB"/>
+            <!-- Pointed Fox Ears with Dark Tips -->
+            <path d="M74 28 L71 12 L84 22 Z" fill="#EA580C" stroke="#9A3412" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M72 16 L71 12 L76 15 Z" fill="#1C1917"/>
+            <path d="M87 26 L94 11 L99 27 Z" fill="#F97316" stroke="#9A3412" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M92 15 L94 11 L96 16 Z" fill="#1C1917"/>
+            <path d="M89 24 L93 15 L96 24 Z" fill="#FED7AA"/>
+            <!-- Fox Head & Snout -->
+            <path d="M72 36 Q72 22 88 22 Q100 22 103 33 L113 38 Q108 46 95 47 Q74 48 72 36 Z" fill="#F97316" stroke="#9A3412" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M82 39 Q94 37 112 38 Q107 46 94 47 Q83 47 82 39 Z" fill="#FFFBEB"/>
+            <!-- Cute Nose, Eye, Cheek & Smile -->
+            <circle cx="112" cy="38" r="3" fill="#1C1917"/>
+            <circle cx="91" cy="31" r="2.7" fill="#1C1917"/>
+            <circle cx="91.8" cy="30.2" r="0.9" fill="#FFFFFF"/>
+            <ellipse cx="86" cy="36" rx="2.5" ry="1.5" fill="#FB7185" opacity="0.5"/>
+            <path d="M97 42 Q102 44.5 106 41.5" fill="none" stroke="#78350F" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>`;
+
+        const MAYFLOWER_SVG = `<svg viewBox="0 0 110 100" aria-hidden="true">
+            <!-- Masts -->
+            <rect x="42" y="14" width="4" height="52" fill="#78350F"/>
+            <rect x="68" y="20" width="4" height="46" fill="#78350F"/>
+            <!-- Pennant Flags -->
+            <polygon points="44,12 58,15 44,19" fill="#EF4444"/>
+            <polygon points="70,18 82,21 70,24" fill="#F59E0B"/>
+            <!-- Billowing White Sails -->
+            <path d="M24 24 Q44 19 60 24 Q55 42 60 56 Q44 51 24 56 Q30 40 24 24 Z" fill="#FFFBEB" stroke="#D97706" stroke-width="1.6"/>
+            <path d="M36 39 L48 39 M42 32 L42 47" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M56 28 Q70 24 84 28 Q80 42 84 54 Q70 50 56 54 Q61 41 56 28 Z" fill="#FEF3C7" stroke="#D97706" stroke-width="1.6"/>
+            <!-- Wooden Ship Hull -->
+            <path d="M14 60 L96 60 L84 82 L26 82 Z" fill="#92400E" stroke="#451A03" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M18 66 L92 66" stroke="#F59E0B" stroke-width="3"/>
+            <circle cx="36" cy="73" r="3" fill="#FDE047"/>
+            <circle cx="55" cy="73" r="3" fill="#FDE047"/>
+            <circle cx="74" cy="73" r="3" fill="#FDE047"/>
+            <!-- Ocean Waves -->
+            <path d="M8 84 Q20 79 32 84 T56 84 T80 84 T102 84" fill="none" stroke="#0284C7" stroke-width="4" stroke-linecap="round"/>
+        </svg>`;
+
+        const SCARECROW_SVG = `<svg viewBox="0 0 100 110" aria-hidden="true">
+            <!-- Wooden Post -->
+            <rect x="47" y="45" width="6" height="60" rx="2" fill="#92400E"/>
+            <rect x="18" y="48" width="64" height="6" rx="3" fill="#92400E"/>
+            <!-- Straw Hands -->
+            <path d="M18 46 L9 42 M18 51 L8 51 M18 55 L10 59" stroke="#FACC15" stroke-width="3" stroke-linecap="round"/>
+            <path d="M82 46 L91 42 M82 51 L92 51 M82 55 L90 59" stroke="#FACC15" stroke-width="3" stroke-linecap="round"/>
+            <!-- Flannel Shirt & Overalls -->
+            <path d="M22 44 L78 44 L78 58 L66 58 L68 86 L32 86 L34 58 L22 58 Z" fill="#EA580C" stroke="#9A3412" stroke-width="1.5"/>
+            <path d="M35 54 L65 54 L68 86 L53 86 L50 76 L47 86 L32 86 Z" fill="#2563EB" stroke="#1E3A8A" stroke-width="1.5"/>
+            <rect x="54" y="64" width="8" height="8" rx="1.5" fill="#FBBF24" stroke="#92400E" stroke-width="1.2"/>
+            <!-- Straw Hair & Burlap Head -->
+            <path d="M30 33 L24 38 M32 36 L26 42 M70 33 L76 38 M68 36 L74 42" stroke="#FACC15" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="50" cy="32" r="14" fill="#FDE68A" stroke="#B45309" stroke-width="1.6"/>
+            <circle cx="45" cy="30" r="2" fill="#1C1917"/>
+            <circle cx="55" cy="30" r="2" fill="#1C1917"/>
+            <polygon points="50,31 47,36 53,36" fill="#F97316"/>
+            <path d="M43 38 Q50 43 57 38" fill="none" stroke="#78350F" stroke-width="1.8" stroke-linecap="round"/>
+            <!-- Straw Hat -->
+            <ellipse cx="50" cy="21" rx="26" ry="5" fill="#FACC15" stroke="#CA8A04" stroke-width="1.5"/>
+            <path d="M36 21 L40 8 Q50 5 60 8 L64 21 Z" fill="#FDE047" stroke="#CA8A04" stroke-width="1.5"/>
+            <rect x="37" y="16" width="26" height="4" fill="#DC2626"/>
+        </svg>`;
+
+        const COZY_CABIN_SVG = `<svg viewBox="0 0 100 100" aria-hidden="true">
+            <!-- Chimney & Smoke -->
+            <rect x="66" y="18" width="11" height="24" fill="#78716C" stroke="#44403C" stroke-width="1.5"/>
+            <circle cx="72" cy="12" r="4" fill="#E2E8F0" opacity="0.85"/>
+            <circle cx="77" cy="7" r="5" fill="#F1F5F9" opacity="0.75"/>
+            <!-- Log Cabin Walls -->
+            <rect x="20" y="46" width="60" height="42" rx="3" fill="#B45309" stroke="#78350F" stroke-width="2"/>
+            <line x1="20" y1="56" x2="80" y2="56" stroke="#78350F" stroke-width="2"/>
+            <line x1="20" y1="66" x2="80" y2="66" stroke="#78350F" stroke-width="2"/>
+            <line x1="20" y1="76" x2="80" y2="76" stroke="#78350F" stroke-width="2"/>
+            <!-- Pitched Roof -->
+            <polygon points="12,48 50,18 88,48" fill="#78350F" stroke="#451A03" stroke-width="2" stroke-linejoin="round"/>
+            <!-- Wooden Door & Warm Glowing Window -->
+            <rect x="30" y="62" width="16" height="26" rx="2" fill="#451A03"/>
+            <circle cx="42" cy="76" r="1.8" fill="#FBBF24"/>
+            <rect x="54" y="58" width="16" height="15" rx="2" fill="#FEF08A" stroke="#451A03" stroke-width="2"/>
+            <line x1="62" y1="58" x2="62" y2="73" stroke="#451A03" stroke-width="1.5"/>
+            <line x1="54" y1="65.5" x2="70" y2="65.5" stroke="#451A03" stroke-width="1.5"/>
+        </svg>`;
+
+        // --- 2. FESTIVE ASSETS ---
         const STICKERS = [
+            { id: 'pilgrim_boy', name: 'Pilgrim Boy', isPilgrim: true, renderSvg: getPilgrimBoySVG },
+            { id: 'pilgrim_girl', name: 'Pilgrim Girl', isPilgrim: true, renderSvg: getPilgrimGirlSVG },
             { id: 'turkey', name: 'Tom Turkey', emoji: '🦃' },
+            { id: 'fox', name: 'Autumn Fox', svg: FULL_FOX_SVG },
+            { id: 'mayflower', name: 'Mayflower Ship', svg: MAYFLOWER_SVG },
             { id: 'pie', name: 'Pumpkin Pie', emoji: '🥧' },
             { id: 'pumpkin', name: 'Pumpkin', emoji: '🎃' },
             { id: 'corn', name: 'Harvest Corn', emoji: '🌽' },
+            { id: 'cornucopia', name: 'Horn of Plenty', svg: `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M15 70 Q25 20 85 35 Q75 80 25 82 Z" fill="#B45309" stroke="#78350F" stroke-width="3"/><ellipse cx="75" cy="56" rx="16" ry="22" fill="#451A03"/><circle cx="78" cy="48" r="10" fill="#EA580C"/><circle cx="84" cy="60" r="9" fill="#DC2626"/><circle cx="72" cy="64" r="9" fill="#FACC15"/></svg>` },
+            { id: 'scarecrow', name: 'Scarecrow', svg: SCARECROW_SVG },
+            { id: 'cabin', name: 'Cozy Cabin', svg: COZY_CABIN_SVG },
+            { id: 'hat', name: 'Pilgrim Hat', svg: `<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="80" rx="44" ry="12" fill="#292524"/><path d="M24 80 L30 22 Q50 15 70 22 L76 80 Z" fill="#44403C"/><rect x="27" y="62" width="46" height="12" fill="#D97706"/><rect x="40" y="59" width="20" height="18" rx="3" fill="none" stroke="#FBBF24" stroke-width="5"/></svg>` },
+            { id: 'drumstick', name: 'Drumstick', emoji: '🍗' },
             { id: 'leaf_maple', name: 'Maple Leaf', emoji: '🍁' },
             { id: 'leaf_fallen', name: 'Autumn Leaves', emoji: '🍂' },
             { id: 'acorn', name: 'Acorn', emoji: '🌰' },
@@ -582,11 +887,16 @@
             { id: 'bread', name: 'Warm Bread', emoji: '🍞' },
             { id: 'carrot', name: 'Carrot', emoji: '🥕' },
             { id: 'potato', name: 'Sweet Potato', emoji: '🍠' },
+            { id: 'berries', name: 'Wild Berries', emoji: '🫐' },
+            { id: 'honey', name: 'Sweet Honey', emoji: '🍯' },
             { id: 'squirrel', name: 'Squirrel', emoji: '🐿️' },
             { id: 'owl', name: 'Wise Owl', emoji: '🦉' },
-            { id: 'fox', name: 'Autumn Fox', emoji: '🦊' },
-            { id: 'hat', name: 'Pilgrim Hat', svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="80" rx="44" ry="12" fill="#292524"/><path d="M24 80 L30 22 Q50 15 70 22 L76 80 Z" fill="#44403C"/><rect x="27" y="62" width="46" height="12" fill="#D97706"/><rect x="40" y="59" width="20" height="18" rx="3" fill="none" stroke="#FBBF24" stroke-width="5"/></svg>` },
-            { id: 'cornucopia', name: 'Horn of Plenty', svg: `<svg viewBox="0 0 100 100"><path d="M15 70 Q25 20 85 35 Q75 80 25 82 Z" fill="#B45309" stroke="#78350F" stroke-width="3"/><ellipse cx="75" cy="56" rx="16" ry="22" fill="#451A03"/><circle cx="78" cy="48" r="10" fill="#EA580C"/><circle cx="84" cy="60" r="9" fill="#DC2626"/><circle cx="72" cy="64" r="9" fill="#FACC15"/></svg>` },
+            { id: 'hedgehog', name: 'Hedgehog', emoji: '🦔' },
+            { id: 'raccoon', name: 'Raccoon', emoji: '🦝' },
+            { id: 'deer', name: 'Forest Deer', emoji: '🦌' },
+            { id: 'tractor', name: 'Farm Tractor', emoji: '🚜' },
+            { id: 'campfire', name: 'Campfire', emoji: '🔥' },
+            { id: 'sparkles', name: 'Sparkles', emoji: '✨' },
             { id: 'heart', name: 'Thankful Heart', emoji: '🧡' }
         ];
         const STICKER_BY_ID = Object.fromEntries(STICKERS.map(s => [s.id, s]));
@@ -610,6 +920,10 @@
         ];
 
         const STORY_IDEAS = [
+            'Sail the Mayflower Ship across the Starry Harvest ocean!',
+            'Have the Pilgrim Boy, Pilgrim Girl, and Tom Turkey share a Thanksgiving feast!',
+            'Make the Autumn Fox and Squirrel race through falling leaves!',
+            'Build a cozy autumn farm with the Scarecrow, Tractor, and Cozy Cabin!',
             'Make the pie disappear one bite at a time!',
             'Make a turkey waddle across the meadow. Turn it a little on each slide!',
             'Make leaves fall from the top of the stage to the ground.',
@@ -617,7 +931,6 @@
             'Fill the feast table with one new food on every slide.',
             'Make the pumpkin grow bigger and bigger, then say "Ta-da!"',
             'Make the owl fly across the Starry Harvest sky.',
-            'Make a fox and a turkey become friends. What do they say?',
             'Show something you are thankful for and add a Thankful Heart.'
         ];
 
@@ -626,11 +939,12 @@
         const READ_KEY = 'tsm_read_aloud';
         const CODE_PREFIX = 'TSM1.';
 
-        // --- 2. APPLICATION STATE ---
+        // --- 3. APPLICATION STATE ---
         let slides = [];
         let currentSlideIndex = 0;
         let selectedItemId = null;
         let currentTextStyle = 'bubble';
+        let defaultPilgrimSkin = '#F6C8A8';
         let movieTitle = '';
         let isExample = false;
         let ideaText = '';
@@ -652,7 +966,12 @@
         }
 
         function stickerItem(stickerId, x, y, extra) {
-            return Object.assign({ id: generateId(), type: 'sticker', stickerId, x, y, scale: 1, flipX: 1, rot: 0 }, extra || {});
+            const sticker = STICKER_BY_ID[stickerId];
+            const base = { id: generateId(), type: 'sticker', stickerId, x, y, scale: 1, flipX: 1, rot: 0 };
+            if (sticker && sticker.isPilgrim) {
+                base.skin = (extra && extra.skin) ? extra.skin : defaultPilgrimSkin;
+            }
+            return Object.assign(base, extra || {});
         }
 
         function textItem(text, style, x, y, extra) {
@@ -664,34 +983,34 @@
                 {
                     id: generateId(), sceneId: 'meadow', soundId: 'gobble', hold: 2,
                     items: [
-                        stickerItem('sunflower', 10, 66),
+                        stickerItem('pilgrim_girl', 14, 66, { skin: '#B87D52' }),
                         stickerItem('pie', 86, 72),
-                        stickerItem('turkey', 20, 68, { flipX: -1 }),
+                        stickerItem('turkey', 32, 68, { flipX: -1 }),
                         textItem('Turkey Wants Pie!', 'banner', 50, 16)
                     ]
                 },
                 {
                     id: generateId(), sceneId: 'meadow', soundId: null, hold: 1,
                     items: [
-                        stickerItem('sunflower', 10, 66),
+                        stickerItem('pilgrim_girl', 14, 66, { skin: '#B87D52' }),
                         stickerItem('pie', 86, 72),
-                        stickerItem('turkey', 43, 60, { flipX: -1, rot: 15 }),
-                        textItem('Gobble Gobble!', 'bubble', 50, 32)
+                        stickerItem('turkey', 52, 60, { flipX: -1, rot: 15 }),
+                        textItem('Gobble Gobble!', 'bubble', 54, 32)
                     ]
                 },
                 {
                     id: generateId(), sceneId: 'meadow', soundId: 'tada', hold: 2,
                     items: [
-                        stickerItem('sunflower', 10, 66),
+                        stickerItem('pilgrim_girl', 16, 66, { skin: '#B87D52' }),
                         stickerItem('pie', 86, 72),
-                        stickerItem('turkey', 68, 68, { flipX: -1 }),
+                        stickerItem('turkey', 70, 68, { flipX: -1 }),
                         textItem('Yummy Pie!', 'bubble', 74, 40)
                     ]
                 }
             ];
         }
 
-        // --- 3. SAVING, LOADING & MOVIE CODES ---
+        // --- 4. SAVING, LOADING & MOVIE CODES ---
         function round(n) { return Math.round(n * 100) / 100; }
 
         function toCompact() {
@@ -703,9 +1022,14 @@
                     c: s.sceneId,
                     a: s.soundId,
                     h: s.hold,
-                    i: s.items.map(it => it.type === 'sticker'
-                        ? ['s', it.stickerId, round(it.x), round(it.y), it.scale, it.flipX, it.rot]
-                        : ['t', it.text, it.style === 'banner' ? 'n' : 'b', round(it.x), round(it.y), it.scale, it.flipX, it.rot])
+                    i: s.items.map(it => {
+                        if (it.type === 'sticker') {
+                            const row = ['s', it.stickerId, round(it.x), round(it.y), it.scale, it.flipX, it.rot];
+                            if (it.skin) row.push(it.skin);
+                            return row;
+                        }
+                        return ['t', it.text, it.style === 'banner' ? 'n' : 'b', round(it.x), round(it.y), it.scale, it.flipX, it.rot];
+                    })
                 }))
             };
         }
@@ -717,9 +1041,15 @@
         function parseItem(a) {
             if (!Array.isArray(a)) return null;
             if (a[0] === 's' && STICKER_BY_ID[a[1]]) {
-                return stickerItem(a[1], num(a[2], 4, 96, 50), num(a[3], 6, 94, 50), {
-                    scale: num(a[4], 0.4, 2.6, 1), flipX: a[5] === -1 ? -1 : 1, rot: num(a[6], -360, 360, 0)
-                });
+                const extra = {
+                    scale: num(a[4], 0.4, 2.6, 1),
+                    flipX: a[5] === -1 ? -1 : 1,
+                    rot: num(a[6], -360, 360, 0)
+                };
+                if (typeof a[7] === 'string' && /^#[0-9A-Fa-f]{6}$/.test(a[7])) {
+                    extra.skin = a[7].toUpperCase();
+                }
+                return stickerItem(a[1], num(a[2], 4, 96, 50), num(a[3], 6, 94, 50), extra);
             }
             if (a[0] === 't' && typeof a[1] === 'string' && a[1].trim()) {
                 return textItem(a[1].slice(0, 40), a[2] === 'n' ? 'banner' : 'bubble', num(a[3], 4, 96, 50), num(a[4], 6, 94, 25), {
@@ -797,7 +1127,7 @@
             }
         }
 
-        // --- 4. UNDO ---
+        // --- 5. UNDO ---
         function pushUndo() {
             undoStack.push(JSON.stringify({ slides, currentSlideIndex, movieTitle, isExample }));
             if (undoStack.length > 60) undoStack.shift();
@@ -828,7 +1158,7 @@
             saveLocal();
         }
 
-        // --- 5. SOUND SYNTHESIZER (Tone.js) ---
+        // --- 6. SOUND SYNTHESIZER (Tone.js) ---
         function disposeLater(node, ms) {
             setTimeout(() => { try { node.dispose(); } catch (err) { /* already gone */ } }, ms);
         }
@@ -891,7 +1221,7 @@
             }
         }
 
-        // --- 6. READ TO ME (speaks button names for early readers) ---
+        // --- 7. READ TO ME (speaks button names for early readers) ---
         const canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
 
         function cleanForSpeech(text) {
@@ -924,7 +1254,90 @@
             if (!on && canSpeak) window.speechSynthesis.cancel();
         }
 
-        // --- 7. RENDERING TOOLBOXES ---
+        // --- 8. PILGRIM SKIN COLOR PICKER & TOOLBOX RENDERING ---
+        function getStickerVisualHTML(sticker, skinHex) {
+            if (sticker.isPilgrim && typeof sticker.renderSvg === 'function') {
+                return sticker.renderSvg(skinHex || defaultPilgrimSkin);
+            }
+            return sticker.svg ? sticker.svg : sticker.emoji;
+        }
+
+        function getSkinToneObj(hex) {
+            const upper = String(hex || '').toUpperCase();
+            return SKIN_TONES.find(t => t.hex.toUpperCase() === upper) || SKIN_TONES[1];
+        }
+
+        function buildSkinSwatchButtons(containerId, activeHex, onPick) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            const normalizedActive = String(activeHex || defaultPilgrimSkin).toUpperCase();
+
+            SKIN_TONES.forEach(tone => {
+                const isSelected = tone.hex.toUpperCase() === normalizedActive;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `skin-swatch rounded-full border-2 border-amber-900/40 shadow-sm cursor-pointer ${isSelected ? 'active' : ''}`;
+                btn.style.backgroundColor = tone.hex;
+                btn.title = tone.name;
+                btn.setAttribute('aria-label', `${tone.name} skin color`);
+                btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+                btn.dataset.say = `${tone.name} skin color`;
+                btn.onclick = () => onPick(tone);
+                container.appendChild(btn);
+            });
+        }
+
+        function renderToolboxSkinPicker() {
+            const tone = getSkinToneObj(defaultPilgrimSkin);
+            document.getElementById('toolbox-skin-name').textContent = tone.name;
+            buildSkinSwatchButtons('toolbox-skin-swatches', defaultPilgrimSkin, (pickedTone) => {
+                defaultPilgrimSkin = pickedTone.hex;
+                renderToolboxSkinPicker();
+                renderStickerToolbox();
+
+                // Also update the selected Pilgrim on stage if one is currently selected
+                const sel = getSelectedItem();
+                if (sel && sel.type === 'sticker' && STICKER_BY_ID[sel.stickerId]?.isPilgrim) {
+                    pushUndo();
+                    sel.skin = pickedTone.hex;
+                    refresh();
+                } else {
+                    playSoundEffect('pop');
+                }
+                showToast(`Pilgrim skin color: ${pickedTone.name}`, '🎨');
+            });
+        }
+
+        function updateSelectedPilgrimSkinUI() {
+            const bar = document.getElementById('selected-pilgrim-skin-bar');
+            const sel = getSelectedItem();
+            const isPilgrimSelected = sel && sel.type === 'sticker' && STICKER_BY_ID[sel.stickerId]?.isPilgrim;
+
+            if (!isPilgrimSelected) {
+                bar.hidden = true;
+                return;
+            }
+
+            bar.hidden = false;
+            const currentHex = sel.skin || defaultPilgrimSkin;
+            const tone = getSkinToneObj(currentHex);
+            document.getElementById('selected-skin-name').textContent = tone.name;
+
+            buildSkinSwatchButtons('selected-skin-swatches', currentHex, (pickedTone) => {
+                const activeItem = getSelectedItem();
+                if (!activeItem || !STICKER_BY_ID[activeItem.stickerId]?.isPilgrim) return;
+                pushUndo();
+                activeItem.skin = pickedTone.hex;
+                defaultPilgrimSkin = pickedTone.hex;
+                renderToolboxSkinPicker();
+                renderStickerToolbox();
+                playSoundEffect('pop');
+                refresh();
+                showToast(`Changed Pilgrim skin to ${pickedTone.name}!`, '🎨');
+            });
+        }
+
         function renderStickerToolbox() {
             const grid = document.getElementById('sticker-grid');
             grid.innerHTML = '';
@@ -936,7 +1349,7 @@
                 btn.dataset.say = sticker.name;
                 btn.innerHTML = `
                     <div class="toolbox-svg text-3xl sm:text-4xl leading-none flex items-center justify-center h-10">
-                        ${sticker.svg ? sticker.svg : sticker.emoji}
+                        ${getStickerVisualHTML(sticker, defaultPilgrimSkin)}
                     </div>
                     <span class="text-[11px] font-bold text-amber-900 truncate w-full text-center">${sticker.name}</span>
                 `;
@@ -988,12 +1401,13 @@
             });
         }
 
-        // --- 8. ADDING & CHANGING ITEMS ON STAGE ---
+        // --- 9. ADDING & CHANGING ITEMS ON STAGE ---
         function addStickerToSlide(sticker) {
             pushUndo();
             const slide = slides[currentSlideIndex];
+            const extra = sticker.isPilgrim ? { skin: defaultPilgrimSkin } : {};
             // Slight random offset near center so multiple items don't stack invisibly
-            const newItem = stickerItem(sticker.id, 50 + (Math.random() * 14 - 7), 50 + (Math.random() * 14 - 7));
+            const newItem = stickerItem(sticker.id, 50 + (Math.random() * 14 - 7), 50 + (Math.random() * 14 - 7), extra);
             slide.items.push(newItem);
             selectedItemId = newItem.id;
             playSoundEffect('pop');
@@ -1091,7 +1505,7 @@
             refresh();
         }
 
-        // --- 9. RENDERING STAGE, ONION SKIN & FILMSTRIP ---
+        // --- 10. RENDERING STAGE, ONION SKIN & FILMSTRIP ---
         function itemLabel(item) {
             return item.type === 'sticker' ? STICKER_BY_ID[item.stickerId].name : `"${item.text}"`;
         }
@@ -1099,6 +1513,7 @@
         function updateSelectedLabel() {
             const selectedItem = getSelectedItem();
             document.getElementById('selected-label').textContent = selectedItem ? itemLabel(selectedItem) : 'Tap an item on stage';
+            updateSelectedPilgrimSkinUI();
         }
 
         // Select without rebuilding the stage, so a drag can carry on with the same element
@@ -1169,9 +1584,13 @@
             if (item.type === 'sticker') {
                 const sticker = STICKER_BY_ID[item.stickerId];
                 el.style.transform = `${base} scaleX(${item.flipX})`;
-                el.innerHTML = sticker.svg
-                    ? `<div class="sticker-svg">${sticker.svg}</div>`
-                    : `<div class="sticker-emoji">${sticker.emoji}</div>`;
+                if (sticker.isPilgrim && typeof sticker.renderSvg === 'function') {
+                    el.innerHTML = `<div class="sticker-svg">${sticker.renderSvg(item.skin || defaultPilgrimSkin)}</div>`;
+                } else if (sticker.svg) {
+                    el.innerHTML = `<div class="sticker-svg">${sticker.svg}</div>`;
+                } else {
+                    el.innerHTML = `<div class="sticker-emoji">${sticker.emoji}</div>`;
+                }
             } else {
                 // Words are never mirrored. Flip moves the speech bubble's tail instead.
                 el.style.transform = base;
@@ -1298,12 +1717,12 @@
             }
         }
 
-        // --- 10. SLIDE MANAGEMENT ---
+        // --- 11. SLIDE MANAGEMENT ---
         function duplicateCurrentSlide() {
             pushUndo();
             const current = slides[currentSlideIndex];
             let newSelectedId = null;
-            // Deep clone items so moving them on the new slide doesn't alter the previous slide
+            // Deep clone items (including Pilgrim skin color) so moving them on the new slide doesn't alter the previous slide
             const clonedItems = current.items.map(item => {
                 const copy = { ...item, id: generateId() };
                 if (item.id === selectedItemId) newSelectedId = copy.id;
@@ -1383,7 +1802,7 @@
             showToast('New movie started! Tap Undo to get the old one back.', '🆕');
         }
 
-        // --- 11. STORY IDEAS & EXAMPLE NOTICE ---
+        // --- 12. STORY IDEAS & EXAMPLE NOTICE ---
         function renderIdeaBar() {
             const bar = document.getElementById('idea-bar');
             const text = document.getElementById('idea-text');
@@ -1421,7 +1840,7 @@
             renderIdeaBar();
         }
 
-        // --- 12. MODALS ---
+        // --- 13. MODALS ---
         function openModal(id) {
             const m = document.getElementById(id);
             m.classList.remove('hidden');
@@ -1475,15 +1894,21 @@
             openModal('save-modal');
         }
 
-        async function copyMovieCode() {
+        function copyMovieCode() {
             const box = document.getElementById('code-out');
             box.value = encodeMovie();
+            box.focus();
+            box.select();
+            box.setSelectionRange(0, box.value.length);
+            let copied = false;
             try {
-                await navigator.clipboard.writeText(box.value);
-                showToast('Movie code copied! Paste it where your teacher says.', '📋');
+                copied = document.execCommand('copy');
             } catch (err) {
-                box.focus();
-                box.select();
+                copied = false;
+            }
+            if (copied) {
+                showToast('Movie code copied! Paste it where your teacher says.', '📋');
+            } else {
                 showToast('Now press Ctrl and C together to copy your code.', '📋');
             }
         }
@@ -1514,7 +1939,7 @@
             showToast('Movie opened! Tap Undo to go back to your old one.', '🎉');
         }
 
-        // --- 13. STOP MOTION MOVIE THEATER ---
+        // --- 14. STOP MOTION MOVIE THEATER ---
         function openMovieTheater(startIdx) {
             document.getElementById('theater-title').textContent = movieTitle || 'Thanksgiving Movie Theater';
             openModal('movie-modal');
@@ -1591,7 +2016,7 @@
             scheduleNextFrame(); // does nothing while paused; Play picks up the new speed
         }
 
-        // --- 14. UI HELPERS & EVENT LISTENERS ---
+        // --- 15. UI HELPERS & EVENT LISTENERS ---
         function switchTab(tabName) {
             ['stickers', 'scenes', 'text'].forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
@@ -1725,7 +2150,7 @@
             });
         }
 
-        // --- 15. START ---
+        // --- 16. START ---
         function init() {
             document.body.classList.add('min-h-screen', 'flex', 'flex-col', 'text-amber-950');
             if (!loadLocal()) {
@@ -1740,6 +2165,7 @@
                 try { saved = localStorage.getItem(READ_KEY) || '0'; } catch (err) { /* fine */ }
                 setReadAloud(saved === '1');
             }
+            renderToolboxSkinPicker();
             renderStickerToolbox();
             renderSceneToolbox();
             renderSoundModalOptions();
@@ -1756,5 +2182,5 @@
             init();
         }
     </script>
-
-</body></html>
+</body>
+</html>
