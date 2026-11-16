@@ -1,3083 +1,906 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Thanksgiving Stop Motion Animation Studio</title>
-    <style>
-        :root {
-            color-scheme: light;
-            box-sizing: border-box;
-            padding-top: env(safe-area-inset-top, 0px);
-            padding-bottom: env(safe-area-inset-bottom, 0px);
-        }
-        *, *::before, *::after {
-            box-sizing: inherit;
-        }
-        html {
-            scroll-padding-top: env(safe-area-inset-top, 0px);
-            font-size: 16px;
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            font-family: 'Trebuchet MS', 'Comic Sans MS', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: #FFF8EB;
-            background-image: radial-gradient(#FDE68A 2px, transparent 2px);
-            background-size: 32px 32px;
-            color: #451A03;
-            user-select: none;
-            -webkit-user-select: none;
-            overflow-x: hidden;
-        }
-        img { max-width: 100%; }
-        [hidden]:not([hidden="until-found"]) { display: none !important; }
-        input, textarea {
-            user-select: text;
-            -webkit-user-select: text;
-            font-family: inherit;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thanksgiving Shape Challenge</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;600&display=swap">
+<style>
+/* Layout: one-screen app. Header + level bar on top, shape tray beside (or below) a free-form build stage. */
+:root {
+    --bg: #FEF3C7;            /* page ground, warm amber */
+    --stage: #FFFBEB;         /* build surface */
+    --stage-dot: #F2B544;
+    --panel: #FFF8E1;         /* tray + level bar */
+    --panel-line: #FCD34D;
+    --card: #FFFFFF;
+    --ink: #451A03;           /* text */
+    --ink-soft: #92400E;
+    --brand: #D97706;         /* header */
+    --brand-deep: #B45309;
+    --accent: #F97316;        /* selection, active tab */
+    --go: #059669;
+    --stop: #DC2626;
+    --sky: #0284C7;
+    --on-dark: #FFFFFF;
+    --shadow: rgba(69, 26, 3, .2);
+    --font-display: 'Fredoka', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color-scheme: light;
+}
+html, body { height: 100%; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+    margin: 0; display: flex; flex-direction: column; overflow: hidden;
+    background: var(--bg); color: var(--ink);
+    font-family: var(--font-body); font-size: 14px;
+    -webkit-user-select: none; user-select: none;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
 
-        h1, h2, h3, .kid-font {
-            font-family: 'Trebuchet MS', 'Segoe UI Rounded', 'Arial Rounded MT Bold', system-ui, sans-serif;
-            margin: 0;
-        }
-        p { margin: 0; }
+/* Tactile buttons */
+.btn {
+    font-family: var(--font-display); font-weight: 600; line-height: 1;
+    border: 2px solid transparent; border-radius: 14px; padding: 8px 12px;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    background: var(--card); color: var(--ink);
+    box-shadow: 0 3px 0 var(--shadow);
+    transition: transform .12s, box-shadow .12s;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--shadow); }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--shadow); }
+.btn[disabled] { opacity: .45; cursor: default; transform: none; box-shadow: 0 3px 0 var(--shadow); }
+.btn.go { background: var(--go); color: var(--on-dark); }
+.btn.stop { background: var(--stop); color: var(--on-dark); }
+.btn.sky { background: var(--sky); color: var(--on-dark); }
+.btn.plain { background: var(--card); border-color: var(--panel-line); }
+.btn.ready { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.08); } }
 
-        /* Big tap targets for small hands */
-        button {
-            min-height: 44px;
-            min-width: 44px;
-            border: none;
-            font-family: inherit;
-            cursor: pointer;
-        }
-        button:focus-visible, input:focus-visible, textarea:focus-visible {
-            outline: 3px solid #1D4ED8;
-            outline-offset: 2px;
-        }
-        button:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-        }
+/* Header */
+.top {
+    background: var(--brand); color: var(--on-dark); flex: none;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px;
+    padding-block: 8px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.top h1 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin: 0; letter-spacing: .3px; }
+.tabs, .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tab { background: var(--brand-deep); color: var(--on-dark); }
+.tab[aria-pressed="true"] { background: var(--accent); border-color: var(--on-dark); }
 
-        /* Header */
-        .app-header {
-            background: linear-gradient(90deg, #F59E0B 0%, #F97316 50%, #EF4444 100%);
-            color: #FFFFFF;
-            padding: 0.75rem 1rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-            border-bottom: 4px solid #B45309;
-        }
-        .header-inner {
-            max-width: 80rem;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-        }
-        .brand-wrap {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .brand-logo {
-            background: #FFFFFF;
-            font-size: 1.875rem;
-            padding: 0.5rem;
-            border-radius: 1rem;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-            transform: rotate(-3deg);
-            line-height: 1;
-        }
-        .brand-title {
-            font-size: clamp(1.2rem, 2.5vw, 1.85rem);
-            font-weight: 800;
-            letter-spacing: 0.02em;
-            text-shadow: 0 2px 4px rgba(120, 53, 15, 0.35);
-        }
-        .brand-subtitle {
-            font-size: 0.85rem;
-            color: #FEF3C7;
-            font-weight: 700;
-        }
-        .header-actions {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.5rem;
-        }
+/* Level bar */
+.bar {
+    flex: none; background: var(--panel); border-bottom: 2px solid var(--panel-line);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px;
+    padding-block: 6px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.bar .group { display: flex; align-items: center; gap: 6px; }
+.bar label, .bar .lbl { font-family: var(--font-display); font-weight: 600; color: var(--ink-soft); }
+.seg { display: inline-flex; border: 2px solid var(--panel-line); border-radius: 12px; overflow: hidden; background: var(--card); }
+.seg button { border: 0; background: transparent; padding: 6px 12px; font-family: var(--font-display); font-weight: 600; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-dark); }
+.bar .btn { padding: 6px 10px; border-radius: 12px; }
+#level-tip { color: var(--ink-soft); }
+#name-input {
+    width: 150px; max-width: 40vw; padding: 6px 10px; border-radius: 12px;
+    border: 2px solid var(--panel-line); background: var(--card);
+    -webkit-user-select: text; user-select: text;
+}
+#progress { margin-left: auto; font-family: var(--font-display); font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 
-        /* Bouncy Kid-Friendly Button Effects */
-        .btn-bounce {
-            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, background-color 0.15s ease;
-        }
-        .btn-bounce:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); }
-        .btn-bounce:active:not(:disabled) { transform: translateY(2px) scale(0.96); }
-        @media (prefers-reduced-motion: reduce) {
-            .btn-bounce, .filmstrip-frame, .skin-swatch { transition: none; }
-            .sound-playing { animation: none !important; }
-        }
+/* Workspace */
+.work { flex: 1; min-height: 0; display: flex; }
+.tray {
+    flex: none; width: 250px; background: var(--panel); border-right: 3px solid var(--panel-line);
+    display: flex; flex-direction: column; min-height: 0;
+}
+.tray h2 {
+    margin: 0; padding: 8px 12px; font-family: var(--font-display); font-size: 16px; font-weight: 700;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--panel-line);
+}
+.tray h2 small { font-family: var(--font-body); font-size: 11px; font-weight: 600; color: var(--ink-soft); }
+#parts {
+    flex: 1; min-height: 0; overflow-y: auto; padding: 10px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start;
+    touch-action: pan-y;
+}
+.part {
+    position: relative; background: var(--card); border: 2px solid var(--panel-line); border-radius: 14px;
+    padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    box-shadow: 0 3px 0 var(--shadow); min-width: 0;
+}
+.part:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--shadow); }
+.part svg { width: 56px; height: 56px; pointer-events: none; }
+.part span.nm { font-family: var(--font-display); font-weight: 600; font-size: 12px; text-align: center; line-height: 1.15; }
+.part .left {
+    position: absolute; top: 4px; right: 4px; min-width: 24px; padding: 2px 5px; border-radius: 10px;
+    background: var(--accent); color: var(--on-dark);
+    font-family: var(--font-display); font-weight: 700; font-size: 12px; text-align: center; font-variant-numeric: tabular-nums;
+}
+.part.done { opacity: .6; }
+.part.done .left { background: var(--go); }
 
-        /* Button Variants */
-        .btn-amber-light {
-            background: #FEF3C7;
-            color: #78350F;
-            font-weight: 800;
-            padding: 0.5rem 0.9rem;
-            border-radius: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            border-bottom: 4px solid #FCD34D;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.92rem;
-        }
-        .btn-amber-light:hover:not(:disabled) { background: #FFFFFF; }
-        .btn-amber-light.ring-active {
-            box-shadow: 0 0 0 4px #FFFFFF, 0 2px 4px rgba(0,0,0,0.08);
-        }
+.stage {
+    flex: 1; min-width: 0; position: relative; overflow: hidden;
+    background-color: var(--stage);
+    background-image: radial-gradient(var(--stage-dot) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+#world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+#ghost { position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none; }
+#ghost.on { opacity: .22; }
+#ghost svg { width: 100%; height: 100%; display: block; overflow: visible; }
+#empty-tip {
+    position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%); width: max-content; max-width: 80%;
+    text-align: center; color: var(--ink-soft); font-family: var(--font-display); font-weight: 600; font-size: 16px;
+    background: var(--card); border: 2px dashed var(--panel-line); border-radius: 14px; padding: 8px 14px; pointer-events: none;
+}
 
-        .btn-sky-light {
-            background: #E0F2FE;
-            color: #0C4A6E;
-            font-weight: 800;
-            padding: 0.5rem 0.9rem;
-            border-radius: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            border-bottom: 4px solid #7DD3FC;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.92rem;
-        }
-        .btn-sky-light:hover:not(:disabled) { background: #FFFFFF; }
+.piece { position: absolute; cursor: grab; touch-action: none; border-radius: 6px; }
+.piece::before { content: ""; position: absolute; inset: -5px; }   /* bigger touch target for tiny shapes */
+.piece svg { position: relative; display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.piece:hover svg { filter: drop-shadow(0 2px 3px var(--shadow)); }
+.piece.drag { cursor: grabbing; }
+.piece.drag svg { filter: drop-shadow(0 6px 6px var(--shadow)); }
+.piece.sel { outline: 2px dashed var(--accent); outline-offset: 3px; }
+.piece:focus-visible { outline: 2px dashed var(--sky); outline-offset: 3px; }
+.piece.wiggle svg { animation: wiggle .35s ease-in-out 4; }
+.piece.count svg { animation: glow .8s ease-in-out infinite; }
+@keyframes wiggle { 25% { transform: rotate(-7deg); } 75% { transform: rotate(7deg); } }
+@keyframes glow { 50% { filter: drop-shadow(0 0 5px var(--sky)) drop-shadow(0 0 2px var(--sky)); } }
 
-        .btn-emerald-main {
-            background: #10B981;
-            color: #FFFFFF;
-            font-weight: 900;
-            padding: 0.6rem 1.25rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 10px rgba(6, 95, 70, 0.25);
-            border-bottom: 4px solid #047857;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.05rem;
-        }
-        .btn-emerald-main:hover:not(:disabled) { background: #34D399; }
+/* Copy This card */
+#target {
+    position: absolute; top: 12px; right: calc(12px + env(safe-area-inset-right, 0px)); width: 200px; z-index: 5;
+    background: var(--card); border: 3px solid var(--accent); border-radius: 16px; padding: 8px;
+    box-shadow: 0 4px 10px var(--shadow); display: flex; flex-direction: column; gap: 6px;
+}
+#target.big { width: min(340px, 70%); }
+#target header { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-family: var(--font-display); font-weight: 700; color: var(--brand-deep); }
+#target header div { display: flex; gap: 4px; }
+#target header button { border: 0; border-radius: 8px; background: var(--bg); padding: 3px 7px; font-weight: 700; }
+#target-pic { background: var(--stage); border: 1px solid var(--panel-line); border-radius: 10px; padding: 4px; }
+#target-pic svg { display: block; width: 100%; height: auto; }
+#target.min #target-pic, #target.min #look-bar { display: none; }
+#target.min { width: auto; }
+#target.gone #target-pic { display: none; }
+#target.gone { width: auto; }
+#memory-note { display: none; font-family: var(--font-display); font-weight: 600; color: var(--ink-soft); }
+#target.gone #memory-note { display: block; }
+#look-bar { height: 6px; border-radius: 3px; background: var(--bg); overflow: hidden; }
+#look-bar i { display: block; height: 100%; width: 100%; background: var(--accent); transform-origin: left; }
 
-        /* Main Workspace Grid */
-        .workspace {
-            flex: 1;
-            max-width: 80rem;
-            width: 100%;
-            margin: 0 auto;
-            padding: 1rem;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.25rem;
-            align-items: start;
-        }
-        @media (min-width: 1024px) {
-            .workspace {
-                grid-template-columns: 4fr 8fr;
-                padding: 1.25rem;
-            }
-        }
+/* Selected-shape toolbar */
+#tools {
+    position: absolute; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 6;
+    max-width: calc(100% - 16px);
+    background: var(--card); border: 2px solid var(--accent); border-radius: 16px; padding: 6px 8px;
+    box-shadow: 0 6px 16px var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 5px;
+}
+#tool-name { font-family: var(--font-display); font-weight: 600; text-align: center; }
+#tool-name b { color: var(--brand-deep); }
+#tools .row { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+#tools .btn { padding: 7px 9px; border-radius: 11px; background: var(--bg); font-size: 13px; }
+#tools .btn.stop { background: var(--stop); }
 
-        /* Left Toolbox */
-        .toolbox-card {
-            min-width: 0;
-            background: #FFFFFF;
-            border-radius: 1.5rem;
-            padding: 1rem;
-            box-shadow: 0 8px 20px rgba(146, 64, 14, 0.1);
-            border: 4px solid #FDE68A;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .tab-bar {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
-            background: #FEF3C7;
-            padding: 0.375rem;
-            border-radius: 1rem;
-        }
-        .tab-btn {
-            font-weight: 800;
-            padding: 0.5rem;
-            border-radius: 0.75rem;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-            transition: all 0.15s ease;
-            background: transparent;
-            color: #92400E;
-        }
-        .tab-btn:hover:not(.active) { background: rgba(253, 230, 138, 0.65); }
-        .tab-btn.active {
-            background: #F59E0B;
-            color: #FFFFFF;
-            box-shadow: 0 2px 5px rgba(180, 83, 9, 0.25);
-        }
+#toast {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 8; max-width: 86%;
+    background: var(--ink); color: var(--on-dark); padding: 9px 18px; border-radius: 999px;
+    font-family: var(--font-display); font-weight: 600; font-size: 15px; text-align: center; box-shadow: 0 4px 12px var(--shadow);
+}
+#confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 7; }
 
-        .tab-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-        }
-        .tab-panel.hidden { display: none; }
+/* Dialog */
+#modal { position: fixed; inset: 0; z-index: 20; background: rgba(69, 26, 3, .45); display: flex; align-items: center; justify-content: center; padding: 16px; }
+#modal .box { background: var(--card); border: 3px solid var(--accent); border-radius: 20px; padding: 20px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 10px 30px var(--shadow); }
+#modal h3 { font-family: var(--font-display); font-size: 22px; margin: 0 0 6px; text-wrap: balance; }
+#modal p { margin: 0 0 14px; color: var(--ink-soft); font-size: 15px; }
+#modal .choices { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+#modal .choices .btn { font-size: 18px; padding: 12px 18px; background: var(--bg); border-color: var(--panel-line); }
+#modal .choices .btn.num { font-size: 24px; min-width: 62px; justify-content: center; }
+#modal .choices .btn.go { background: var(--go); }
+#modal .choices .btn.stop { background: var(--stop); }
 
-        .panel-header-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.875rem;
-            font-weight: 800;
-            color: #92400E;
-        }
-        .pill-count {
-            font-size: 0.75rem;
-            background: #FEF3C7;
-            color: #B45309;
-            padding: 0.15rem 0.55rem;
-            border-radius: 999px;
-        }
-
-        /* Pilgrim Skin Picker */
-        .skin-box {
-            background: #FFFBEB;
-            border: 2px solid #FDE68A;
-            border-radius: 1rem;
-            padding: 0.6rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-        }
-        .skin-box.selected-variant {
-            background: #FFF7ED;
-            border-color: #FDBA74;
-            margin-bottom: 0.6rem;
-        }
-        .skin-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .skin-title {
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: #78350F;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        .skin-badge {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: #C2410C;
-            background: #FFEDD5;
-            padding: 0.125rem 0.5rem;
-            border-radius: 999px;
-        }
-        .swatch-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.35rem;
-        }
-        .skin-swatch {
-            min-height: 36px;
-            min-width: 36px;
-            width: 36px;
-            height: 36px;
-            border-radius: 999px;
-            border: 2px solid rgba(120, 53, 15, 0.4);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-            transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
-        }
-        .skin-swatch:hover { transform: scale(1.12); }
-        .skin-swatch.active {
-            transform: scale(1.14);
-            box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 6px #EA580C;
-        }
-
-        /* Sticker & Scene Grids */
-        .sticker-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 0.5rem;
-            max-height: 16.5rem;
-            overflow-y: auto;
-            padding: 0.25rem;
-        }
-        @media (min-width: 640px) and (max-width: 1023px) {
-            .sticker-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-        }
-        .sticker-btn {
-            background: #FFFBEB;
-            border: 2px solid #FDE68A;
-            border-radius: 1rem;
-            padding: 0.5rem 0.25rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            min-width: 0;
-        }
-        .sticker-btn:hover { background: #FEF3C7; }
-        .toolbox-svg {
-            font-size: 2rem;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 2.5rem;
-        }
-        .toolbox-svg svg {
-            width: 40px;
-            height: 40px;
-            display: block;
-        }
-        .sticker-name {
-            font-size: 0.68rem;
-            font-weight: 800;
-            color: #78350F;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-            text-align: center;
-        }
-
-        .scene-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.65rem;
-        }
-        .scene-btn {
-            border-radius: 1rem;
-            overflow: hidden;
-            border: 3px solid #FCD34D;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-            display: flex;
-            flex-direction: column;
-            padding: 0;
-            background: #FFFBEB;
-        }
-        .scene-preview {
-            width: 100%;
-            height: 3.5rem;
-        }
-        .scene-label {
-            background: #FFFBEB;
-            padding: 0.4rem 0.5rem;
-            font-size: 0.78rem;
-            font-weight: 800;
-            color: #451A03;
-            text-align: center;
-            width: 100%;
-        }
-
-        /* Text Panel */
-        .text-input-box {
-            width: 100%;
-            padding: 0.65rem 0.85rem;
-            border-radius: 1rem;
-            border: 3px solid #FCD34D;
-            font-size: 1rem;
-            font-weight: 800;
-            color: #451A03;
-            background: #FFFBEB;
-        }
-        .text-input-box:focus { border-color: #F97316; outline: none; }
-        .quick-phrases {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.45rem;
-        }
-        .quick-phrase-btn {
-            font-size: 0.82rem;
-            background: #FEF3C7;
-            color: #78350F;
-            font-weight: 800;
-            padding: 0.35rem 0.75rem;
-            border-radius: 0.75rem;
-        }
-        .quick-phrase-btn:hover { background: #FDE68A; }
-        .style-toggle-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-        }
-        .style-btn-group {
-            display: flex;
-            gap: 0.4rem;
-        }
-        .style-choice-btn {
-            padding: 0.35rem 0.75rem;
-            border-radius: 0.75rem;
-            font-size: 0.85rem;
-            font-weight: 800;
-            background: #FEF3C7;
-            color: #78350F;
-        }
-        .style-choice-btn.active {
-            background: #F97316;
-            color: #FFFFFF;
-        }
-        .btn-orange-full {
-            width: 100%;
-            background: #F97316;
-            color: #FFFFFF;
-            font-weight: 900;
-            padding: 0.65rem;
-            border-radius: 1rem;
-            box-shadow: 0 3px 6px rgba(194, 65, 12, 0.25);
-            border-bottom: 4px solid #C2410C;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            font-size: 0.95rem;
-        }
-        .btn-orange-full:hover { background: #FB923C; }
-
-        /* Selected Item Controls */
-        .controls-section {
-            margin-top: 0.25rem;
-            padding-top: 0.75rem;
-            border-top: 2px dashed #FDE68A;
-        }
-        .controls-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .controls-title {
-            font-size: 0.72rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #B45309;
-        }
-        .selected-pill {
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: #EA580C;
-            background: #FFEDD5;
-            padding: 0.15rem 0.55rem;
-            border-radius: 999px;
-            max-width: 11rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .tool-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.45rem;
-        }
-        .tool-btn {
-            font-weight: 800;
-            padding: 0.45rem 0.25rem;
-            border-radius: 0.75rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.72rem;
-            gap: 0.15rem;
-        }
-        .tool-btn .icon { font-size: 1rem; }
-        .tool-sky { background: #E0F2FE; color: #0C4A6E; border-bottom: 2px solid #7DD3FC; }
-        .tool-sky:hover { background: #BAE6FD; }
-        .tool-teal { background: #CCFBF1; color: #134E4A; border-bottom: 2px solid #5EEAD4; }
-        .tool-teal:hover { background: #99F6E4; }
-        .tool-purple { background: #F3E8FF; color: #581C87; border-bottom: 2px solid #D8B4FE; }
-        .tool-purple:hover { background: #E9D5FF; }
-        .tool-lime { background: #ECFCCB; color: #365314; border-bottom: 2px solid #BEF264; }
-        .tool-lime:hover { background: #D9F99D; }
-        .tool-rose { background: #FFE4E6; color: #881337; border-bottom: 2px solid #FDA4AF; }
-        .tool-rose:hover { background: #FECDD3; }
-
-        /* Sound Button */
-        .btn-sound-open {
-            width: 100%;
-            background: #6366F1;
-            color: #FFFFFF;
-            font-weight: 900;
-            padding: 0.75rem 1rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 8px rgba(67, 56, 202, 0.25);
-            border-bottom: 4px solid #4338CA;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .btn-sound-open:hover { background: #818CF8; }
-        .sound-btn-left {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            text-align: left;
-        }
-        .sound-btn-sub {
-            font-size: 0.75rem;
-            color: #E0E7FF;
-            font-weight: 700;
-        }
-        .sound-btn-pill {
-            background: rgba(55, 48, 163, 0.65);
-            padding: 0.25rem 0.6rem;
-            border-radius: 0.75rem;
-            font-size: 0.75rem;
-            font-weight: 800;
-        }
-
-        /* Right Stage & Filmstrip Column */
-        .stage-column {
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .stage-topbar {
-            background: #FFFFFF;
-            border-radius: 1rem;
-            padding: 0.6rem 1rem;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-            border: 2px solid #FDE68A;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-        }
-        .slide-badge {
-            background: #F97316;
-            color: #FFFFFF;
-            font-weight: 900;
-            padding: 0.3rem 0.75rem;
-            border-radius: 0.75rem;
-            font-size: 0.92rem;
-        }
-        .drag-tip {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: #92400E;
-        }
-        @media (max-width: 768px) { .drag-tip { display: none; } }
-
-        .topbar-controls {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .btn-mini-rose {
-            background: #FFE4E6;
-            color: #881337;
-            font-weight: 800;
-            padding: 0.4rem 0.75rem;
-            border-radius: 0.75rem;
-            border-bottom: 2px solid #FDA4AF;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-        .btn-mini-rose:hover:not(:disabled) { background: #FECDD3; }
-        .btn-mini-yellow {
-            background: #FEF9C3;
-            color: #713F12;
-            font-weight: 800;
-            padding: 0.4rem 0.75rem;
-            border-radius: 0.75rem;
-            border-bottom: 2px solid #FDE047;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-        .btn-mini-yellow:hover { background: #FEF08A; }
-
-        .ghost-toggle {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            cursor: pointer;
-            background: #FEF3C7;
-            padding: 0 0.75rem;
-            border-radius: 0.75rem;
-            min-height: 44px;
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: #78350F;
-        }
-        .ghost-toggle:hover { background: #FDE68A; }
-        .ghost-toggle input {
-            width: 1.15rem;
-            height: 1.15rem;
-            accent-color: #EA580C;
-        }
-
-        /* Idea Banner */
-        .idea-banner {
-            background: #FEFCE8;
-            border: 2px solid #FDE047;
-            border-radius: 1rem;
-            padding: 0.65rem 1rem;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-        }
-        .idea-banner-text {
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: #713F12;
-        }
-        .idea-banner-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        /* Interactive Stage */
-        .scene-box {
-            container-type: inline-size;
-        }
-        #stage-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            max-width: 100%;
-            border-radius: 1.5rem;
-            overflow: hidden;
-            background: #FEF3C7;
-            box-shadow: 0 12px 28px -5px rgba(146, 64, 14, 0.25), 0 0 0 6px #F59E0B;
-        }
-        .stage-layer {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-        }
-        .pointer-none { pointer-events: none; }
-
-        .empty-hint-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            text-align: center;
-            padding: 1rem;
-        }
-        .empty-hint-card {
-            background: rgba(255, 255, 255, 0.88);
-            padding: 1rem 1.5rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 2px solid #FCD34D;
-        }
-
-        .stage-item {
-            position: absolute;
-            font-size: 16px;
-            font-size: 2.2cqw;
-            line-height: 1;
-            cursor: grab;
-            touch-action: none;
-        }
-        .stage-item:active { cursor: grabbing; }
-        .stage-item.static { pointer-events: none; cursor: default; }
-        .stage-item.selected {
-            outline: 3px dashed #EA580C;
-            outline-offset: 6px;
-            border-radius: 12px;
-            background-color: rgba(255, 255, 255, 0.25);
-        }
-        .stage-item.onion {
-            opacity: 0.28;
-            filter: grayscale(40%);
-        }
-        .sticker-emoji {
-            font-size: 3.8em;
-            line-height: 1;
-            pointer-events: none;
-            filter: drop-shadow(0 0.04em 0.06em rgba(0, 0, 0, 0.3));
-        }
-        .sticker-svg {
-            pointer-events: none;
-            filter: drop-shadow(0 0.15em 0.2em rgba(0, 0, 0, 0.3));
-        }
-        .sticker-svg svg {
-            width: 4.1em;
-            height: 4.1em;
-            display: block;
-        }
-
-        .bubble {
-            position: relative;
-            background: #FFFFFF;
-            color: #451A03;
-            font-weight: 800;
-            line-height: 1.3;
-            padding: 0.45em 0.9em;
-            border-radius: 1.4em;
-            border: 0.16em solid #78350F;
-            white-space: nowrap;
-            pointer-events: none;
-            box-shadow: 0 0.2em 0.4em rgba(0, 0, 0, 0.2);
-        }
-        .bubble::after {
-            content: "";
-            position: absolute;
-            width: 0.7em;
-            height: 0.7em;
-            background: #FFFFFF;
-            border-right: 0.16em solid #78350F;
-            border-bottom: 0.16em solid #78350F;
-            bottom: -0.5em;
-            left: 22%;
-            transform: rotate(45deg);
-        }
-        .bubble.tail-right::after { left: auto; right: 22%; }
-        .banner {
-            background: linear-gradient(90deg, #EA580C, #F59E0B);
-            color: #FFFFFF;
-            font-weight: 800;
-            font-size: 1.2em;
-            line-height: 1.3;
-            padding: 0.4em 1em;
-            border-radius: 0.8em;
-            border: 0.12em solid #FEF08A;
-            white-space: nowrap;
-            pointer-events: none;
-            box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.25);
-        }
-
-        /* Filmstrip Card */
-        .filmstrip-card {
-            background: #FFFFFF;
-            border-radius: 1.5rem;
-            padding: 1rem;
-            box-shadow: 0 8px 20px rgba(146, 64, 14, 0.1);
-            border: 4px solid #FDE68A;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        .filmstrip-top {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-        }
-        .filmstrip-actions {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .btn-next-slide {
-            background: #F59E0B;
-            color: #FFFFFF;
-            font-weight: 900;
-            padding: 0.5rem 1rem;
-            border-radius: 1rem;
-            box-shadow: 0 3px 6px rgba(180, 83, 9, 0.25);
-            border-bottom: 4px solid #B45309;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.95rem;
-        }
-        .btn-next-slide:hover { background: #FBBF24; }
-        .btn-slide-util {
-            background: #FEF3C7;
-            color: #78350F;
-            font-weight: 800;
-            padding: 0.5rem 0.75rem;
-            border-radius: 1rem;
-            border-bottom: 4px solid #FCD34D;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            font-size: 0.85rem;
-        }
-        .btn-slide-util:hover:not(:disabled) { background: #FDE68A; }
-        .btn-slide-del {
-            background: #FFE4E6;
-            color: #9F1239;
-            font-weight: 800;
-            padding: 0.5rem 0.75rem;
-            border-radius: 1rem;
-            border-bottom: 4px solid #FDA4AF;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            font-size: 0.85rem;
-        }
-        .btn-slide-del:hover { background: #FECDD3; }
-
-        .filmstrip-track {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            overflow-x: auto;
-            padding: 0.5rem 0.25rem;
-            min-height: 104px;
-        }
-        .filmstrip-frame {
-            position: relative;
-            padding: 0;
-            flex-shrink: 0;
-            width: 8.5rem;
-            aspect-ratio: 16 / 9;
-            border-radius: 1rem;
-            overflow: hidden;
-            border: 3px solid #FCD34D;
-            opacity: 0.88;
-            transition: all 0.2s ease;
-        }
-        .filmstrip-frame:hover { opacity: 1; }
-        .filmstrip-frame.active {
-            opacity: 1;
-            border-color: #EA580C;
-            transform: scale(1.05);
-            box-shadow: 0 0 0 4px #EA580C, 0 8px 15px rgba(234, 88, 12, 0.3);
-        }
-        .frame-num-badge {
-            position: absolute;
-            top: 4px;
-            left: 6px;
-            background: rgba(69, 26, 3, 0.78);
-            color: #FFFFFF;
-            font-size: 0.7rem;
-            font-weight: 900;
-            padding: 0.1rem 0.45rem;
-            border-radius: 999px;
-        }
-        .frame-pills {
-            position: absolute;
-            bottom: 4px;
-            right: 6px;
-            display: flex;
-            gap: 4px;
-        }
-        .pill-hold {
-            background: #0284C7;
-            color: #FFFFFF;
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 0.1rem 0.4rem;
-            border-radius: 999px;
-        }
-        .pill-sound {
-            background: #4F46E5;
-            color: #FFFFFF;
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 0.1rem 0.4rem;
-            border-radius: 999px;
-        }
-
-        .slide-subtools {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.5rem;
-            padding-top: 0.6rem;
-            border-top: 2px dashed #FDE68A;
-        }
-        .btn-sub-sky {
-            background: #E0F2FE;
-            color: #0C4A6E;
-            font-weight: 800;
-            padding: 0.45rem 0.75rem;
-            border-radius: 1rem;
-            border-bottom: 4px solid #7DD3FC;
-            font-size: 0.85rem;
-        }
-        .btn-sub-sky:hover { background: #BAE6FD; }
-        .btn-sub-emerald {
-            background: #D1FAE5;
-            color: #064E3B;
-            font-weight: 800;
-            padding: 0.45rem 0.75rem;
-            border-radius: 1rem;
-            border-bottom: 4px solid #6EE7B7;
-            font-size: 0.85rem;
-        }
-        .btn-sub-emerald:hover { background: #A7F3D0; }
-
-        /* Modals */
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(69, 26, 3, 0.68);
-            backdrop-filter: blur(4px);
-            z-index: 50;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            overflow-y: auto;
-        }
-        .modal.open { display: flex; }
-        .modal-card {
-            background: #FFFFFF;
-            border-radius: 1.5rem;
-            max-width: 34rem;
-            width: 100%;
-            padding: 1.5rem;
-            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
-            border: 4px solid #FBBF24;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .modal-card.indigo-border { border-color: #818CF8; }
-        .modal-card.sky-border { border-color: #38BDF8; }
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-        }
-        .btn-close-x {
-            background: #F3F4F6;
-            color: #374151;
-            font-weight: 900;
-            border-radius: 999px;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-close-x:hover { background: #E5E7EB; }
-
-        .sound-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.6rem;
-        }
-        @media (min-width: 500px) { .sound-grid { grid-template-columns: repeat(3, 1fr); } }
-        .sound-opt-btn {
-            background: #EEF2FF;
-            border: 2px solid #C7D2FE;
-            border-radius: 1rem;
-            padding: 0.75rem 0.5rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.35rem;
-        }
-        .sound-opt-btn:hover { background: #E0E7FF; }
-        .sound-opt-btn.selected {
-            background: #C7D2FE;
-            box-shadow: 0 0 0 4px #6366F1;
-        }
-
-        /* Animation Preview Stage Modal */
-        .preview-card {
-            background: linear-gradient(180deg, #78350F 0%, #1C1917 100%);
-            border-radius: 1.5rem;
-            max-width: 56rem;
-            width: 100%;
-            padding: 1.25rem;
-            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.5);
-            border: 4px solid #FBBF24;
-            color: #FFFFFF;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .preview-screen {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            border-radius: 1rem;
-            overflow: hidden;
-            background: #000000;
-            border: 4px solid rgba(245, 158, 11, 0.8);
-        }
-        .preview-badge-left {
-            position: absolute;
-            top: 0.75rem;
-            left: 0.75rem;
-            background: rgba(0, 0, 0, 0.6);
-            color: #FDE68A;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.78rem;
-            font-weight: 800;
-        }
-        .preview-badge-right {
-            position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            background: rgba(79, 70, 229, 0.92);
-            color: #FFFFFF;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.78rem;
-            font-weight: 800;
-            display: none;
-            align-items: center;
-            gap: 0.35rem;
-        }
-        .preview-badge-right.visible { display: flex; }
-        .preview-controls {
-            background: rgba(41, 37, 36, 0.92);
-            border-radius: 1rem;
-            padding: 0.85rem 1rem;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-        .speed-group {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.4rem;
-            background: #1C1917;
-            padding: 0.35rem 0.75rem;
-            border-radius: 1rem;
-        }
-        .speed-btn {
-            padding: 0.35rem 0.75rem;
-            border-radius: 0.75rem;
-            font-size: 0.85rem;
-            font-weight: 800;
-            background: #44403C;
-            color: #E5E7EB;
-        }
-        .speed-btn.active {
-            background: #F59E0B;
-            color: #451A03;
-        }
-
-        /* Help Steps */
-        .help-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-        }
-        .help-step {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.65rem;
-            background: #FFFBEB;
-            padding: 0.65rem 0.85rem;
-            border-radius: 1rem;
-            font-weight: 700;
-            font-size: 0.92rem;
-            color: #451A03;
-        }
-        .step-num {
-            background: #F97316;
-            color: #FFFFFF;
-            width: 1.6rem;
-            height: 1.6rem;
-            border-radius: 999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 0.85rem;
-            font-weight: 900;
-        }
-
-        /* Save & Share Form */
-        .code-textarea {
-            width: 100%;
-            padding: 0.5rem 0.75rem;
-            border-radius: 1rem;
-            border: 3px solid #7DD3FC;
-            font-size: 0.78rem;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            color: #0C4A6E;
-            background: #F0F9FF;
-            word-break: break-all;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { height: 10px; width: 10px; }
-        ::-webkit-scrollbar-track { background: #FEF3C7; border-radius: 999px; }
-        ::-webkit-scrollbar-thumb { background: #F59E0B; border-radius: 999px; border: 2px solid #FEF3C7; }
-        ::-webkit-scrollbar-thumb:hover { background: #D97706; }
-
-        /* Toast Notification */
-        #toast-box {
-            position: fixed;
-            bottom: 1.25rem;
-            left: 50%;
-            transform: translateX(-50%);
-            max-width: calc(100% - 32px);
-            background: #78350F;
-            color: #FFFFFF;
-            padding: 0.65rem 1.25rem;
-            border-radius: 999px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-            font-weight: 800;
-            font-size: 0.9rem;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-            z-index: 60;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        #toast-box.show { opacity: 1; }
-
-        @keyframes pulse-ring {
-            0% { transform: scale(0.95); opacity: 0.85; }
-            50% { transform: scale(1.06); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.85; }
-        }
-        .sound-playing { animation: pulse-ring 1s infinite ease-in-out; }
-    </style>
+@media (max-width: 760px) {
+    .top h1 { font-size: 17px; }
+    .work { flex-direction: column-reverse; }
+    .tray { width: auto; border-right: 0; border-top: 3px solid var(--panel-line); }
+    .tray h2 { padding: 4px 16px; font-size: 14px; }
+    #parts {
+        display: flex; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; padding-block: 8px 10px;
+        padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    }
+    .part { flex: none; width: 88px; }
+    .part svg { width: 44px; height: 44px; }
+    #target { width: 118px; padding: 5px; }
+    #level-tip, .btn .t { display: none; }
+    #empty-tip { font-size: 14px; }
+}
+@media (max-width: 520px) { .top h1 { display: none; } .top { justify-content: center; } }
+@media (prefers-reduced-motion: reduce) { .btn, #ghost { transition: none; } .btn.ready, .piece.wiggle svg, .piece.count svg { animation: none; } }
+</style>
 </head>
 <body>
+<header class="top">
+    <h1>🔷 Thanksgiving Shape Challenge</h1>
+    <nav class="tabs" aria-label="Pictures to build">
+        <button class="btn tab" id="tab-turkey" data-mode="turkey">🦃 Turkey</button>
+        <button class="btn tab" id="tab-pilgrim" data-mode="pilgrim">👒 Pilgrim</button>
+        <button class="btn tab" id="tab-mayflower" data-mode="mayflower">⛵ Mayflower</button>
+    </nav>
+    <div class="actions">
+        <button class="btn plain" id="btn-undo" title="Undo (Ctrl+Z)">↩️ <span class="t">Undo</span></button>
+        <button class="btn stop" id="btn-reset" title="Start over">🔄 <span class="t">Reset</span></button>
+        <button class="btn go" id="btn-done" title="Check my picture">✅ <span class="t">Done!</span></button>
+        <button class="btn sky" id="btn-save" title="Save a picture">📸 <span class="t">Save</span></button>
+        <button class="btn plain" id="btn-sound" title="Sound on or off" aria-pressed="true">🔊</button>
+    </div>
+</header>
 
-    <!-- Top Header Bar -->
-    <header class="app-header">
-        <div class="header-inner">
-            <div class="brand-wrap">
-                <div class="brand-logo" aria-hidden="true">🦃</div>
+<div class="bar">
+    <div class="group">
+        <span class="lbl" id="lvl-lbl">Level</span>
+        <div class="seg" role="group" aria-labelledby="lvl-lbl">
+            <button id="lvl-easy" data-level="easy">Easy</button>
+            <button id="lvl-medium" data-level="medium">Medium</button>
+            <button id="lvl-hard" data-level="hard">Hard</button>
+        </div>
+        <span id="level-tip"></span>
+    </div>
+    <button class="btn plain" id="btn-hint">👻 <span id="hint-text">Show outline</span></button>
+    <button class="btn plain" id="btn-peek" hidden>👀 Peek</button>
+    <div class="group">
+        <label for="name-input">Name</label>
+        <input id="name-input" type="text" maxlength="24" placeholder="Your name" autocomplete="off">
+    </div>
+    <div id="progress" aria-live="polite"></div>
+</div>
+
+<main class="work">
+    <aside class="tray">
+        <h2><span id="tray-title">Shapes</span> <small>Tap to add</small></h2>
+        <div id="parts"></div>
+    </aside>
+
+    <section class="stage" id="stage" aria-label="Build area">
+        <div id="world"><div id="ghost"></div></div>
+        <div id="empty-tip">Tap a shape to add it. Then drag it into place!</div>
+
+        <div id="target">
+            <header>
+                <span>🎯 Copy this!</span>
                 <div>
-                    <h1 class="brand-title">Thanksgiving Stop Motion Studio</h1>
-                    <p class="brand-subtitle">Create your own festive holiday animation slide by slide!</p>
+                    <button id="btn-zoom" title="Make the picture bigger or smaller" aria-label="Zoom picture">🔍</button>
+                    <button id="btn-min" title="Hide or show the picture" aria-label="Hide or show picture">▾</button>
                 </div>
-            </div>
+            </header>
+            <div id="target-pic"></div>
+            <div id="look-bar" hidden><i></i></div>
+            <div id="memory-note">Hidden! Build it from memory.</div>
+        </div>
 
-            <!-- Action Buttons -->
-            <div class="header-actions">
-                <button id="btn-help" data-say="How to play" class="btn-bounce btn-amber-light">
-                    <span>💡</span> <span>How to Play</span>
-                </button>
-                <button id="btn-read" aria-pressed="false" class="btn-bounce btn-amber-light">
-                    <span>🗣️</span> <span id="read-label">Read to Me: Off</span>
-                </button>
-                <button id="btn-save" data-say="Save and share" class="btn-bounce btn-sky-light">
-                    <span>💾</span> <span>Save &amp; Share</span>
-                </button>
-                <button id="btn-create-animation" class="btn-bounce btn-emerald-main">
-                    <span>▶️</span>
-                    <span>Play Stop Motion Animation!</span>
-                </button>
+        <div id="tools" hidden>
+            <div id="tool-name"></div>
+            <div class="row">
+                <button class="btn" data-act="rotL" title="Turn left (Shift+R)">↺ <span class="t">Turn</span></button>
+                <button class="btn" data-act="rotR" title="Turn right (R)">↻ <span class="t">Turn</span></button>
+                <button class="btn" data-act="flip" title="Flip (F)">↔️ <span class="t">Flip</span></button>
+                <button class="btn" data-act="bigger" title="Bigger (+)">➕</button>
+                <button class="btn" data-act="smaller" title="Smaller (-)">➖</button>
+                <button class="btn" data-act="front" title="Bring to front (])">⬆️ <span class="t">Front</span></button>
+                <button class="btn" data-act="back" title="Send to back ([)">⬇️ <span class="t">Back</span></button>
+                <button class="btn stop" data-act="del" title="Remove (Delete)">🗑️</button>
             </div>
         </div>
-    </header>
 
-    <!-- Main Workspace -->
-    <main class="workspace">
+        <div id="toast" role="status" aria-live="polite" hidden></div>
+        <canvas id="confetti"></canvas>
+    </section>
+</main>
 
-        <!-- Left Toolbox: Festive Stickers, Backgrounds & Text -->
-        <aside class="toolbox-card">
+<div id="modal" hidden><div class="box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h3 id="modal-title"></h3><p id="modal-text"></p><div class="choices" id="modal-choices"></div>
+</div></div>
 
-            <!-- Category Tabs -->
-            <div class="tab-bar">
-                <button onclick="switchTab('stickers')" id="tab-stickers" class="tab-btn active">
-                    <span>🦃</span> Stickers
-                </button>
-                <button onclick="switchTab('scenes')" id="tab-scenes" class="tab-btn">
-                    <span>🍂</span> Scenes
-                </button>
-                <button onclick="switchTab('text')" id="tab-text" class="tab-btn">
-                    <span>💬</span> Words
-                </button>
-            </div>
+<script>
+/**
+ * THANKSGIVING SHAPE CHALLENGE
+ * Single file, no libraries. Each picture is described once (parts + slots);
+ * the "Copy this!" card, the outline, the tray, the answer check and the saved image all come from that data.
+ * Positions are stored in picture units, so a build survives window resizes and reloads.
+ */
 
-            <!-- Panel 1: Thanksgiving Stickers -->
-            <div id="panel-stickers" class="tab-panel">
-                <div class="panel-header-row">
-                    <span>Tap to add to your slide:</span>
-                    <span id="sticker-count" class="pill-count"></span>
-                </div>
+// ---------- shape helpers (all drawn centred on 0,0) ----------
+const circ = (r, f, s, sw = 3) => `<circle r="${r}" fill="${f}" stroke="${s}" stroke-width="${sw}"/>`;
+const rect = (w, h, f, s, sw = 3, rx = 0) => `<rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" rx="${rx}" fill="${f}" stroke="${s}" stroke-width="${sw}"/>`;
+const poly = (pts, f, s, sw = 3) => `<polygon points="${pts}" fill="${f}" stroke="${s}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+const path = (d, f, s, sw = 3) => `<path d="${d}" fill="${f}" stroke="${s}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+const feather = (f, s) => poly('0,55 -32,-55 32,-55', f, s);
+const fan = a => [160 + 55 * Math.sin(a * Math.PI / 180), 155 - 55 * Math.cos(a * Math.PI / 180), a];
 
-                <!-- Pilgrim Skin Color Bar -->
-                <div class="skin-box">
-                    <div class="skin-header">
-                        <span class="skin-title"><span>🎨</span> Pilgrim Skin Color:</span>
-                        <span id="toolbox-skin-name" class="skin-badge">Fair Peach</span>
-                    </div>
-                    <div id="toolbox-skin-swatches" class="swatch-row" role="group" aria-label="Pilgrim skin color swatches"></div>
-                </div>
+const KIND = {
+    circle:        { plural: 'circles',      fact: 'round, with 0 corners' },
+    triangle:      { plural: 'triangles',    fact: '3 sides and 3 corners' },
+    rectangle:     { plural: 'rectangles',   fact: '4 sides and 4 square corners' },
+    square:        { plural: 'squares',      fact: '4 equal sides' },
+    trapezoid:     { plural: 'trapezoids',   fact: '4 sides, 2 of them parallel' },
+    'half circle': { plural: 'half circles', fact: '1 straight side and 1 curved side' },
+    oval:          { plural: 'ovals',        fact: 'a stretched circle, 0 corners' }
+};
 
-                <div id="sticker-grid" class="sticker-grid"></div>
-            </div>
+// part: [id, name, kind, width, height, layer, svg]   slot: [partId, x, y, turn, flipped]
+const MODES = {
+    turkey: {
+        label: 'Turkey', emoji: '🦃', W: 320, H: 300,
+        parts: [
+            ['body', 'Large Circle', 'circle', 116, 116, 6, circ(58, '#7C2D12', '#431407', 3.5)],
+            ['head', 'Medium Circle', 'circle', 64, 64, 8, circ(32, '#9A3412', '#431407', 3.5)],
+            ['wing', 'Half Circle', 'half circle', 30, 60, 7, path('M15,-30 A30 30 0 0 0 15,30 Z', '#9A3412', '#431407')],
+            ['f-red', 'Red Triangle', 'triangle', 64, 110, 2, feather('#DC2626', '#7F1D1D')],
+            ['f-orange', 'Orange Triangle', 'triangle', 64, 110, 2, feather('#F97316', '#9A3412')],
+            ['f-yellow', 'Yellow Triangle', 'triangle', 64, 110, 2, feather('#EAB308', '#854D0E')],
+            ['f-teal', 'Teal Triangle', 'triangle', 64, 110, 2, feather('#0D9488', '#115E59')],
+            ['beak', 'Small Triangle', 'triangle', 24, 18, 11, poly('-12,-9 12,-9 0,9', '#FACC15', '#A16207', 2.5)],
+            ['wattle', 'Red Oval', 'oval', 12, 24, 9, `<ellipse rx="6" ry="12" fill="#EF4444" stroke="#991B1B" stroke-width="2"/>`],
+            ['eye', 'Eye Circle', 'circle', 14, 14, 10, circ(7, '#FFFFFF', '#1E293B', 2) + `<circle r="3" fill="#0F172A"/>`],
+            ['leg', 'Thin Rectangle', 'rectangle', 12, 44, 4, rect(12, 44, '#F59E0B', '#B45309', 2.5, 4)],
+            ['foot', 'Wide Triangle', 'triangle', 36, 20, 5, poly('0,-10 -18,10 18,10', '#F59E0B', '#B45309', 2.5)]
+        ],
+        slots: [
+            ['f-red', ...fan(-60)], ['f-orange', ...fan(-30)], ['f-yellow', ...fan(0)], ['f-orange', ...fan(30)], ['f-teal', ...fan(60)],
+            ['leg', 140, 254], ['leg', 180, 254], ['foot', 140, 274], ['foot', 180, 274],
+            ['body', 160, 185], ['wing', 87, 185], ['wing', 233, 185, 0, true],
+            ['head', 160, 118], ['eye', 149, 110], ['eye', 171, 110], ['wattle', 169, 136], ['beak', 160, 131]
+        ]
+    },
+    pilgrim: {
+        label: 'Pilgrim', emoji: '👒', W: 300, H: 320,
+        parts: [
+            ['coat', 'Large Trapezoid', 'trapezoid', 128, 110, 5, poly('-42,-55 42,-55 64,55 -64,55', '#1E293B', '#0F172A', 3.5)],
+            ['head', 'Peach Circle', 'circle', 68, 68, 6, circ(34, '#FDBA74', '#9A3412')],
+            ['crown', 'Dark Rectangle', 'rectangle', 70, 52, 10, rect(70, 52, '#1E293B', '#0F172A', 3, 4)],
+            ['brim', 'Long Rectangle', 'rectangle', 136, 14, 11, rect(136, 14, '#1E293B', '#0F172A', 3, 6)],
+            ['band', 'White Rectangle', 'rectangle', 70, 12, 11, rect(70, 12, '#F8FAFC', '#94A3B8', 2)],
+            ['buckle', 'Yellow Square', 'square', 20, 20, 12, rect(20, 20, '#FACC15', '#A16207', 2.5)],
+            ['collar', 'White Triangle', 'triangle', 64, 34, 7, poly('-32,-17 32,-17 0,17', '#F8FAFC', '#94A3B8', 2.5)],
+            ['belt', 'Brown Rectangle', 'rectangle', 106, 14, 7, rect(106, 14, '#78350F', '#451A03', 2)],
+            ['arm', 'Sleeve Rectangle', 'rectangle', 44, 20, 3, rect(44, 20, '#334155', '#0F172A', 3, 6)],
+            ['hand', 'Small Circle', 'circle', 20, 20, 4, circ(10, '#FDBA74', '#9A3412', 2.5)],
+            ['legp', 'Short Rectangle', 'rectangle', 22, 28, 3, rect(22, 28, '#334155', '#0F172A')],
+            ['shoe', 'Black Half Circle', 'half circle', 42, 21, 4, path('M-21,10.5 A21 21 0 0 1 21,10.5 Z', '#0F172A', '#0F172A', 1)],
+            ['dot', 'Tiny Circle', 'circle', 8, 8, 9, circ(4, '#0F172A', '#0F172A', 0)],
+            ['smile', 'Red Half Circle', 'half circle', 24, 12, 9, path('M-12,-6 A12 12 0 0 0 12,-6 Z', '#EF4444', '#991B1B', 1.5)]
+        ],
+        slots: [
+            ['arm', 87, 172, -15], ['arm', 213, 172, 15], ['legp', 127, 278], ['legp', 173, 278],
+            ['hand', 64, 179], ['hand', 236, 179], ['shoe', 125, 293.5], ['shoe', 175, 293.5],
+            ['coat', 150, 209], ['head', 150, 116], ['collar', 150, 171], ['belt', 150, 219],
+            ['dot', 139, 110], ['dot', 161, 110], ['smile', 150, 130],
+            ['crown', 150, 44], ['band', 150, 60], ['brim', 150, 75], ['buckle', 150, 60], ['buckle', 150, 219]
+        ]
+    },
+    mayflower: {
+        label: 'Mayflower', emoji: '⛵', W: 320, H: 300,
+        parts: [
+            ['hull', 'Hull Trapezoid', 'trapezoid', 224, 61, 6, poly('-112,-30.5 112,-30.5 74,30.5 -74,30.5', '#9A3412', '#431407', 3.5)],
+            ['mast', 'Tall Rectangle', 'rectangle', 10, 150, 2, rect(10, 150, '#78350F', '#451A03', 2.5)],
+            ['sail-lg', 'Large Square', 'square', 72, 72, 4, rect(72, 72, '#FFFFFF', '#92400E', 3, 4)],
+            ['sail-sm', 'Cream Square', 'square', 56, 56, 4, rect(56, 56, '#FEF3C7', '#92400E', 3, 4)],
+            ['sail-tri', 'Cream Triangle', 'triangle', 45, 58, 4, poly('-22.5,-29 22.5,29 -22.5,29', '#FEF3C7', '#92400E')],
+            ['flag', 'Red Triangle', 'triangle', 36, 20, 5, poly('-18,-10 18,0 -18,10', '#EF4444', '#991B1B', 2.5)],
+            ['stripe', 'Yellow Stripe', 'rectangle', 192, 10, 7, rect(192, 10, '#FACC15', '#CA8A04', 1)],
+            ['port', 'Small Circle', 'circle', 14, 14, 8, circ(7, '#FEF08A', '#431407', 2)],
+            ['ocean', 'Blue Rectangle', 'rectangle', 280, 26, 9, rect(280, 26, '#0284C7', '#0369A1', 2.5, 6)],
+            ['sun', 'Yellow Circle', 'circle', 48, 48, 1, circ(24, '#FACC15', '#CA8A04')]
+        ],
+        slots: [
+            ['sun', 58, 54], ['mast', 111, 137], ['mast', 172, 120], ['mast', 233, 145],
+            ['sail-sm', 111, 123], ['sail-lg', 172, 110], ['sail-tri', 255.5, 125], ['flag', 190, 48],
+            ['hull', 160, 225.5], ['stripe', 160, 217], ['port', 115, 236], ['port', 160, 236], ['port', 205, 236],
+            ['ocean', 160, 269]
+        ]
+    }
+};
+for (const m of Object.values(MODES)) {
+    m.parts = m.parts.map(([id, name, kind, w, h, z, svg]) => ({ id, name, kind, w, h, z, svg }));
+    m.byId = Object.fromEntries(m.parts.map(p => [p.id, p]));
+    m.slots = m.slots.map(([part, x, y, rot = 0, flip = false]) => ({ part, x, y, rot, flip }));
+    m.parts.forEach(p => p.need = m.slots.filter(s => s.part === p.id).length);
+}
+const LEVELS = {
+    easy:   'Shapes snap into the outline.',
+    medium: 'Copy the picture.',
+    hard:   'Look, then build it from memory.'
+};
 
-            <!-- Panel 2: Background Scenes -->
-            <div id="panel-scenes" class="tab-panel hidden">
-                <p class="panel-header-row">Choose a background scene:</p>
-                <div id="scene-grid" class="scene-grid"></div>
-            </div>
+// ---------- state ----------
+const STORE = 'thanksgiving-shape-challenge-v2';
+const S = { mode: 'turkey', level: 'medium', name: '', sound: true, boards: { turkey: [], pilgrim: [], mayflower: [] } };
+const undoStack = { turkey: [], pilgrim: [], mayflower: [] };
+let sel = null, hintsOn = false, uid = 1, view = { u: 1, ox: 0, oy: 0 }, lookTimer = null, hadGesture = false;
 
-            <!-- Panel 3: Add Text / Speech Bubble -->
-            <div id="panel-text" class="tab-panel hidden">
-                <label for="text-input" class="panel-header-row">Type a title or speech bubble:</label>
-                <input type="text" id="text-input" maxlength="40" placeholder="Gobble, gobble!" class="text-input-box">
-
-                <div class="quick-phrases">
-                    <button onclick="setQuickText('Gobble Gobble!')" class="quick-phrase-btn">Gobble Gobble!</button>
-                    <button onclick="setQuickText('Happy Thanksgiving!')" class="quick-phrase-btn">Happy Thanksgiving!</button>
-                    <button onclick="setQuickText('Yummy Pie!')" class="quick-phrase-btn">Yummy Pie!</button>
-                    <button onclick="setQuickText('The End!')" class="quick-phrase-btn">The End!</button>
-                </div>
-
-                <div class="style-toggle-row">
-                    <span class="panel-header-row">Text Style:</span>
-                    <div class="style-btn-group">
-                        <button onclick="setTextStyle('bubble')" id="style-bubble" class="style-choice-btn active">💬 Speech Bubble</button>
-                        <button onclick="setTextStyle('banner')" id="style-banner" class="style-choice-btn">🏷️ Title Banner</button>
-                    </div>
-                </div>
-
-                <button id="btn-add-text" class="btn-bounce btn-orange-full">
-                    <span>➕</span> Add Words to Slide
-                </button>
-            </div>
-
-            <!-- Selected Item Controls -->
-            <div id="item-controls" class="controls-section">
-                <div class="controls-header">
-                    <span class="controls-title">Selected Item Tools</span>
-                    <span id="selected-label" class="selected-pill">Tap an item on stage</span>
-                </div>
-
-                <!-- Dynamic Pilgrim Skin Color Picker -->
-                <div id="selected-pilgrim-skin-bar" hidden class="skin-box selected-variant">
-                    <div class="skin-header">
-                        <span class="skin-title"><span>🎨</span> Change Pilgrim Skin Color:</span>
-                        <span id="selected-skin-name" class="skin-badge">Fair Peach</span>
-                    </div>
-                    <div id="selected-skin-swatches" class="swatch-row" role="group" aria-label="Change selected Pilgrim skin color"></div>
-                </div>
-
-                <div class="tool-grid">
-                    <button onclick="resizeSelected(0.15)" data-say="Bigger" class="btn-bounce tool-btn tool-sky">
-                        <span class="icon">🔍+</span> Bigger
-                    </button>
-                    <button onclick="resizeSelected(-0.15)" data-say="Smaller" class="btn-bounce tool-btn tool-sky">
-                        <span class="icon">🔍-</span> Smaller
-                    </button>
-                    <button onclick="rotateSelected(-15)" data-say="Turn left" class="btn-bounce tool-btn tool-teal">
-                        <span class="icon">↺</span> Turn Left
-                    </button>
-                    <button onclick="rotateSelected(15)" data-say="Turn right" class="btn-bounce tool-btn tool-teal">
-                        <span class="icon">↻</span> Turn Right
-                    </button>
-                    <button onclick="flipSelected()" data-say="Flip" class="btn-bounce tool-btn tool-purple">
-                        <span class="icon">↔️</span> Flip
-                    </button>
-                    <button onclick="layerSelected('front')" data-say="Bring to front" class="btn-bounce tool-btn tool-lime">
-                        <span class="icon">⬆️</span> To Front
-                    </button>
-                    <button onclick="layerSelected('back')" data-say="Send to back" class="btn-bounce tool-btn tool-lime">
-                        <span class="icon">⬇️</span> To Back
-                    </button>
-                    <button onclick="deleteSelected()" data-say="Trash" class="btn-bounce tool-btn tool-rose">
-                        <span class="icon">🗑️</span> Trash
-                    </button>
-                </div>
-            </div>
-
-            <!-- Add Sound Button Section -->
-            <div class="controls-section">
-                <button id="btn-open-sound" data-say="Add sound to slide" class="btn-bounce btn-sound-open">
-                    <div class="sound-btn-left">
-                        <span style="font-size: 1.5rem;">🔊</span>
-                        <div>
-                            <div style="font-size: 0.95rem;">Add Sound to Slide</div>
-                            <div id="current-sound-badge" class="sound-btn-sub">No sound on this slide</div>
-                        </div>
-                    </div>
-                    <span class="sound-btn-pill">Pick 🎵</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Center & Right: Animation Stage & Slide Filmstrip -->
-        <section class="stage-column">
-
-            <!-- Stage Top Info -->
-            <div class="stage-topbar">
-                <div style="display: flex; align-items: center; gap: 0.6rem;">
-                    <span class="slide-badge">
-                        Slide <span id="slide-counter">1 of 1</span>
-                    </span>
-                    <span class="drag-tip">Drag items around to make them move!</span>
-                </div>
-
-                <div class="topbar-controls">
-                    <button id="btn-undo" disabled data-say="Undo" class="btn-bounce btn-mini-rose">
-                        <span>↩️</span> Undo
-                    </button>
-                    <button id="btn-idea" data-say="Story idea" class="btn-bounce btn-mini-yellow">
-                        <span>💡</span> Story Idea
-                    </button>
-                    <label class="ghost-toggle">
-                        <input type="checkbox" id="toggle-onion" checked>
-                        <span>👻 Ghost Helper</span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Story idea / example notice -->
-            <div id="idea-bar" hidden class="idea-banner">
-                <p id="idea-text" class="idea-banner-text"></p>
-                <div class="idea-banner-actions">
-                    <button id="btn-start-own" hidden class="btn-bounce btn-emerald-main" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">🆕 Start My Own Animation</button>
-                    <button id="btn-idea-close" class="btn-mini-yellow">Got it!</button>
-                </div>
-            </div>
-
-            <!-- Interactive Animation Stage -->
-            <div id="stage-container" class="scene-box">
-                <div id="stage-background" class="stage-layer"></div>
-                <div id="onion-layer" class="stage-layer pointer-none"></div>
-                <div id="stage-items" class="stage-layer"></div>
-
-                <!-- Empty Stage Hint -->
-                <div id="empty-hint" class="empty-hint-overlay">
-                    <div class="empty-hint-card">
-                        <p style="font-size: 1.15rem; font-weight: 900; color: #78350F;">👈 Tap a Pilgrim, Turkey, or Fox to start!</p>
-                        <p style="font-size: 0.85rem; font-weight: 700; color: #B45309; margin-top: 0.25rem;">Then click "Next Slide" below to move it!</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Slide Controls & Filmstrip Timeline -->
-            <div class="filmstrip-card">
-                <div class="filmstrip-top">
-                    <h2 style="font-size: 1.1rem; font-weight: 900; color: #78350F; display: flex; align-items: center; gap: 0.4rem;">
-                        <span>🎞️</span> Your Animation Slides
-                    </h2>
-
-                    <div class="filmstrip-actions">
-                        <button id="btn-duplicate-slide" data-say="Next slide. Copy and move." class="btn-bounce btn-next-slide">
-                            <span>📸</span> Next Slide (Copy &amp; Move)
-                        </button>
-                        <button id="btn-blank-slide" class="btn-bounce btn-slide-util">
-                            <span>📄</span> Blank Slide
-                        </button>
-                        <button id="btn-delete-slide" class="btn-bounce btn-slide-del">
-                            <span>❌</span> Delete Slide
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Filmstrip Container -->
-                <div id="filmstrip" class="filmstrip-track"></div>
-
-                <!-- Tools for the current slide -->
-                <div class="slide-subtools">
-                    <span class="controls-title">This Slide:</span>
-                    <button id="btn-move-earlier" data-say="Move slide earlier" class="btn-bounce btn-slide-util">
-                        ◀ Move Earlier
-                    </button>
-                    <button id="btn-move-later" data-say="Move slide later" class="btn-bounce btn-slide-util">
-                        Move Later ▶
-                    </button>
-                    <button id="btn-hold" class="btn-bounce btn-sub-sky">
-                        ⏱️ Stay on Screen: <span id="hold-label">Normal</span>
-                    </button>
-                    <button id="btn-play-here" data-say="Play from here" class="btn-bounce btn-sub-emerald">
-                        ▶️ Play From Here
-                    </button>
-                </div>
-            </div>
-
-        </section>
-    </main>
-
-    <!-- Sound Picker Modal -->
-    <div id="sound-modal" class="modal">
-        <div class="modal-card indigo-border">
-            <div class="modal-header">
-                <h3 style="font-size: 1.35rem; font-weight: 900; color: #1E1B4B; display: flex; align-items: center; gap: 0.4rem;">
-                    <span>🎵</span> Pick a Sound for Slide <span id="modal-slide-num">1</span>
-                </h3>
-                <button onclick="closeModal('sound-modal')" aria-label="Close" class="btn-close-x">✕</button>
-            </div>
-
-            <p style="font-size: 0.9rem; font-weight: 800; color: #312E81;">Tap a sound to hear it and attach it to this slide!</p>
-
-            <div id="sound-options-grid" class="sound-grid"></div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding-top: 0.75rem; border-top: 2px solid #E0E7FF;">
-                <button onclick="selectSlideSound(null)" class="btn-bounce" style="background: #F3F4F6; color: #1F2937; font-weight: 800; padding: 0.6rem 1rem; border-radius: 1rem;">
-                    🔇 No Sound
-                </button>
-                <button onclick="closeModal('sound-modal')" data-say="Done" class="btn-bounce" style="background: #4F46E5; color: #FFFFFF; font-weight: 900; padding: 0.6rem 1.5rem; border-radius: 1rem; border-bottom: 4px solid #3730A3;">
-                    Done! 👍
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stop Motion Animation Preview Modal -->
-    <div id="preview-modal" class="modal">
-        <div class="preview-card">
-            <div class="modal-header">
-                <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0;">
-                    <span style="font-size: 1.65rem;">✨</span>
-                    <h3 id="preview-title" style="font-size: 1.35rem; font-weight: 900; color: #FCD34D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Thanksgiving Animation Preview</h3>
-                </div>
-                <button id="btn-close-preview" data-say="Back to editor" class="btn-bounce" style="background: #E11D48; color: #FFFFFF; font-weight: 900; padding: 0.45rem 1rem; border-radius: 1rem; border-bottom: 4px solid #9F1239;">
-                    ✏️ Back to Editor
-                </button>
-            </div>
-
-            <!-- Animation Screen -->
-            <div class="scene-box preview-screen">
-                <div id="preview-screen-bg" class="stage-layer"></div>
-                <div id="preview-screen-items" class="stage-layer"></div>
-
-                <div class="preview-badge-left">
-                    Slide <span id="preview-frame-indicator">1 / 1</span>
-                </div>
-
-                <div id="preview-sound-indicator" class="preview-badge-right">
-                    <span>🔊</span> <span id="preview-sound-name">Gobble!</span>
-                </div>
-            </div>
-
-            <!-- Playback Controls -->
-            <div class="preview-controls">
-                <div style="display: flex; align-items: center; gap: 0.6rem;">
-                    <button id="btn-preview-play-pause" class="btn-bounce btn-emerald-main" style="padding: 0.5rem 1.15rem;">
-                        <span id="play-pause-icon">⏸️</span> <span id="play-pause-text">Pause</span>
-                    </button>
-                    <button id="btn-preview-replay" data-say="Replay" class="btn-bounce btn-next-slide" style="color: #451A03;">
-                        <span>🔄</span> Replay
-                    </button>
-                </div>
-
-                <div class="speed-group">
-                    <span style="font-size: 0.85rem; font-weight: 800; color: #FDE68A;">Animation Speed:</span>
-                    <button onclick="setPlaybackSpeed(1100)" data-ms="1100" data-say="Slow" class="speed-btn">🐢 Slow</button>
-                    <button onclick="setPlaybackSpeed(650)" data-ms="650" data-say="Normal" class="speed-btn active">🦃 Normal</button>
-                    <button onclick="setPlaybackSpeed(350)" data-ms="350" data-say="Fast" class="speed-btn">🐇 Fast</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Save & Share Modal -->
-    <div id="save-modal" class="modal">
-        <div class="modal-card sky-border">
-            <div class="modal-header">
-                <h3 style="font-size: 1.35rem; font-weight: 900; color: #082F49; display: flex; align-items: center; gap: 0.4rem;">
-                    <span>💾</span> Save &amp; Share
-                </h3>
-                <button onclick="closeModal('save-modal')" aria-label="Close" class="btn-close-x">✕</button>
-            </div>
-
-            <p id="autosave-note" style="font-size: 0.88rem; font-weight: 800; color: #065F46; background: #ECFDF5; border-radius: 1rem; padding: 0.6rem 0.85rem;">
-                ✅ Your animation saves by itself on this computer.
-            </p>
-
-            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                <label for="project-title" style="font-size: 0.88rem; font-weight: 900; color: #0C4A6E;">Animation name:</label>
-                <input type="text" id="project-title" maxlength="30" placeholder="The Hungry Turkey" class="text-input-box" style="border-color: #7DD3FC; background: #F0F9FF;">
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                <label for="code-out" style="font-size: 0.88rem; font-weight: 900; color: #0C4A6E;">Your project code (copy it to share or turn in):</label>
-                <textarea id="code-out" readonly rows="3" class="code-textarea"></textarea>
-                <button id="btn-copy-code" class="btn-bounce" style="background: #0EA5E9; color: #FFFFFF; font-weight: 900; padding: 0.6rem; border-radius: 1rem; border-bottom: 4px solid #0369A1;">
-                    📋 Copy My Project Code
-                </button>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 0.35rem; padding-top: 0.65rem; border-top: 2px solid #E0F2FE;">
-                <label for="code-in" style="font-size: 0.88rem; font-weight: 900; color: #0C4A6E;">Have a project code? Paste it here:</label>
-                <textarea id="code-in" rows="3" placeholder="TSA1..." class="code-textarea" style="background: #FFFFFF;"></textarea>
-                <button id="btn-open-code" class="btn-bounce btn-emerald-main" style="width: 100%; justify-content: center;">
-                    📂 Open This Project
-                </button>
-            </div>
-
-            <div style="padding-top: 0.65rem; border-top: 2px solid #E0F2FE;">
-                <button id="btn-new-project" class="btn-bounce btn-slide-util" style="width: 100%; justify-content: center; padding: 0.6rem;">
-                    🆕 Start a New Animation
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Kid-Friendly How-To Modal -->
-    <div id="help-modal" class="modal">
-        <div class="modal-card">
-            <h3 style="font-size: 1.4rem; font-weight: 900; color: #78350F; display: flex; align-items: center; gap: 0.4rem;">
-                <span>🎨</span> How to Make a Stop Motion Animation!
-            </h3>
-            <ol class="help-list">
-                <li class="help-step">
-                    <span class="step-num">1</span>
-                    <span>Pick festive stickers (like Pilgrims, turkeys &amp; foxes) and add words to your first slide. Tap a Pilgrim to change their skin color!</span>
-                </li>
-                <li class="help-step">
-                    <span class="step-num">2</span>
-                    <span>Click <strong>"📸 Next Slide (Copy &amp; Move)"</strong>. It copies your picture!</span>
-                </li>
-                <li class="help-step">
-                    <span class="step-num">3</span>
-                    <span>Move or turn your characters a little bit on the new slide. Follow the <strong>👻 Ghost Helper</strong>!</span>
-                </li>
-                <li class="help-step">
-                    <span class="step-num">4</span>
-                    <span>Tap <strong>"🔊 Add Sound"</strong> for gobbles and music, then hit <strong>"▶️ Play Stop Motion Animation!"</strong></span>
-                </li>
-                <li class="help-step">
-                    <span class="step-num">5</span>
-                    <span>Made a mistake? Tap <strong>"↩️ Undo"</strong>. Finished? Tap <strong>"💾 Save &amp; Share"</strong> to get your project code.</span>
-                </li>
-            </ol>
-            <button onclick="closeModal('help-modal')" data-say="Let's start animating" class="btn-bounce btn-emerald-main" style="width: 100%; justify-content: center; font-size: 1.1rem; padding: 0.75rem;">
-                Let's Start Animating! 🦃
-            </button>
-        </div>
-    </div>
-
-    <!-- Custom Toast Notification Box -->
-    <div id="toast-box" role="status">
-        <span id="toast-icon">✨</span>
-        <span id="toast-msg">Message</span>
-    </div>
-
-    <script>
-        /**
-         * THANKSGIVING STOP MOTION ANIMATION STUDIO
-         * 100% Self-Contained (Zero External CDNs, Pure Web Audio API, School-Filter Safe)
-         */
-
-        // --- 1. PILGRIM SKIN TONES & CUSTOM STORYBOOK SVGS ---
-        const SKIN_TONES = [
-            { id: 'porcelain', name: 'Porcelain', hex: '#FDE2D2' },
-            { id: 'peach', name: 'Fair Peach', hex: '#F6C8A8' },
-            { id: 'beige', name: 'Warm Beige', hex: '#E5AC84' },
-            { id: 'olive', name: 'Golden Olive', hex: '#CFA074' },
-            { id: 'tan', name: 'Warm Tan', hex: '#B87D52' },
-            { id: 'medium_brown', name: 'Medium Brown', hex: '#8D5524' },
-            { id: 'deep_brown', name: 'Deep Brown', hex: '#5C3818' },
-            { id: 'rich_dark', name: 'Rich Dark', hex: '#3D2314' }
-        ];
-
-        function getPilgrimBoySVG(skinColor) {
-            const skin = skinColor || '#F6C8A8';
-            return `<svg viewBox="0 0 100 110" aria-hidden="true">
-                <rect x="37" y="76" width="9" height="19" rx="3" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/>
-                <rect x="54" y="76" width="9" height="19" rx="3" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/>
-                <path d="M31 95 Q31 91 39 91 L47 91 L47 102 L29 102 Q27 98 31 95 Z" fill="#1C1917"/>
-                <rect x="36" y="92" width="6" height="5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.8"/>
-                <path d="M53 91 L61 91 Q69 91 69 95 Q73 98 71 102 L53 102 Z" fill="#1C1917"/>
-                <rect x="58" y="92" width="6" height="5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.8"/>
-                <path d="M32 51 L17 65 L23 71 L35 59 Z" fill="#44403C" stroke="#292524" stroke-width="1.5" stroke-linejoin="round"/>
-                <rect x="16" y="64" width="8" height="4" rx="1.5" transform="rotate(42 20 66)" fill="#FFFFFF"/>
-                <circle cx="17" cy="70" r="5" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
-                <path d="M68 51 L83 65 L77 71 L65 59 Z" fill="#44403C" stroke="#292524" stroke-width="1.5" stroke-linejoin="round"/>
-                <rect x="76" y="64" width="8" height="4" rx="1.5" transform="rotate(-42 80 66)" fill="#FFFFFF"/>
-                <circle cx="83" cy="70" r="5" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
-                <path d="M34 68 L66 68 L68 80 L52 80 L50 74 L48 80 L32 80 Z" fill="#292524"/>
-                <path d="M32 49 L68 49 L72 72 L28 72 Z" fill="#44403C" stroke="#292524" stroke-width="1.5" stroke-linejoin="round"/>
-                <rect x="30" y="61" width="40" height="5.5" fill="#1C1917"/>
-                <rect x="45" y="59.5" width="10" height="8.5" rx="1.5" fill="none" stroke="#FBBF24" stroke-width="2.2"/>
-                <path d="M36 48 L50 56 L64 48 L60 45 L40 45 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2" stroke-linejoin="round"/>
-                <rect x="45" y="42" width="10" height="7" rx="2" fill="${skin}"/>
-                <circle cx="33" cy="34" r="4" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
-                <circle cx="67" cy="34" r="4" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
-                <ellipse cx="50" cy="33" rx="16" ry="14.5" fill="${skin}" stroke="#78350F" stroke-width="1.4"/>
-                <path d="M34 29 Q35 21 50 21 Q65 21 66 29 Q60 25 50 25 Q40 25 34 29 Z" fill="#5C3A21"/>
-                <circle cx="44" cy="32" r="2.2" fill="#1C1917"/>
-                <circle cx="44.7" cy="31.3" r="0.7" fill="#FFFFFF"/>
-                <circle cx="56" cy="32" r="2.2" fill="#1C1917"/>
-                <circle cx="56.7" cy="31.3" r="0.7" fill="#FFFFFF"/>
-                <ellipse cx="40" cy="36" rx="2.8" ry="1.8" fill="#FB7185" opacity="0.55"/>
-                <ellipse cx="60" cy="36" rx="2.8" ry="1.8" fill="#FB7185" opacity="0.55"/>
-                <path d="M44.5 38.5 Q50 43.5 55.5 38.5" fill="none" stroke="#78350F" stroke-width="2" stroke-linecap="round"/>
-                <path d="M35 21 L38 6 Q50 3 62 6 L65 21 Z" fill="#292524" stroke="#1C1917" stroke-width="1.4"/>
-                <rect x="36" y="15.5" width="28" height="4.5" fill="#D97706"/>
-                <rect x="45.5" y="14.5" width="9" height="6.5" rx="1" fill="none" stroke="#FBBF24" stroke-width="2"/>
-                <ellipse cx="50" cy="21.5" rx="25" ry="4.5" fill="#1C1917"/>
-            </svg>`;
+try {
+    const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
+    if (saved && saved.boards) {
+        for (const k of Object.keys(MODES)) {
+            S.boards[k] = (saved.boards[k] || []).filter(p => MODES[k].byId[p.part]);
+            S.boards[k].forEach(p => { p.id = uid++; });
         }
+        if (MODES[saved.mode]) S.mode = saved.mode;
+        if (LEVELS[saved.level]) S.level = saved.level;
+        S.name = String(saved.name || '').slice(0, 24);
+        S.sound = saved.sound !== false;
+    }
+} catch (_) {}
+function persist() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (_) {} }
 
-        function getPilgrimGirlSVG(skinColor) {
-            const skin = skinColor || '#F6C8A8';
-            return `<svg viewBox="0 0 100 110" aria-hidden="true">
-                <rect x="39" y="83" width="7" height="13" rx="2" fill="#F8FAFC"/>
-                <rect x="54" y="83" width="7" height="13" rx="2" fill="#F8FAFC"/>
-                <path d="M32 97 Q32 93 40 93 L47 93 L47 103 L30 103 Q28 100 32 97 Z" fill="#1C1917"/>
-                <rect x="37" y="94" width="5.5" height="4.5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.6"/>
-                <path d="M53 93 L60 93 Q68 93 68 97 Q72 100 70 103 L53 103 Z" fill="#1C1917"/>
-                <rect x="57.5" y="94" width="5.5" height="4.5" rx="1" fill="none" stroke="#FBBF24" stroke-width="1.6"/>
-                <path d="M33 50 L18 64 L24 70 L36 58 Z" fill="#3B4252" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
-                <rect x="17" y="63" width="8" height="4" rx="1.5" transform="rotate(42 21 65)" fill="#FFFFFF"/>
-                <circle cx="18" cy="69" r="4.8" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
-                <path d="M67 50 L82 64 L76 70 L64 58 Z" fill="#3B4252" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
-                <rect x="75" y="63" width="8" height="4" rx="1.5" transform="rotate(-42 79 65)" fill="#FFFFFF"/>
-                <circle cx="82" cy="69" r="4.8" fill="${skin}" stroke="#78350F" stroke-width="1.2"/>
-                <path d="M34 48 L66 48 L76 87 L24 87 Z" fill="#3B4252" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
-                <path d="M36 60 L64 60 L69 86 L31 86 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.3" stroke-linejoin="round"/>
-                <rect x="35" y="57" width="30" height="4.5" rx="1.5" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1"/>
-                <path d="M35 48 L50 57 L65 48 L60 44 L40 44 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2" stroke-linejoin="round"/>
-                <path d="M30 35 Q28 13 50 13 Q72 13 70 35 Q68 43 62 43 L38 43 Q32 43 30 35 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.6"/>
-                <path d="M38 42 L34 51" stroke="#E2E8F0" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M62 42 L66 51" stroke="#E2E8F0" stroke-width="2.5" stroke-linecap="round"/>
-                <rect x="45.5" y="41" width="9" height="7" rx="2" fill="${skin}"/>
-                <ellipse cx="50" cy="32.5" rx="15" ry="14" fill="${skin}" stroke="#78350F" stroke-width="1.4"/>
-                <path d="M35 28 Q42 22 50 25 Q58 22 65 28 Q62 21 50 20 Q38 21 35 28 Z" fill="#78350F"/>
-                <circle cx="44" cy="31.5" r="2.2" fill="#1C1917"/>
-                <circle cx="44.7" cy="30.8" r="0.7" fill="#FFFFFF"/>
-                <circle cx="56" cy="31.5" r="2.2" fill="#1C1917"/>
-                <circle cx="56.7" cy="30.8" r="0.7" fill="#FFFFFF"/>
-                <ellipse cx="40" cy="35.5" rx="2.8" ry="1.8" fill="#FB7185" opacity="0.55"/>
-                <ellipse cx="60" cy="35.5" rx="2.8" ry="1.8" fill="#FB7185" opacity="0.55"/>
-                <path d="M44.5 38 Q50 43 55.5 38" fill="none" stroke="#78350F" stroke-width="2" stroke-linecap="round"/>
-            </svg>`;
-        }
+const $ = id => document.getElementById(id);
+const M = () => MODES[S.mode];
+const board = () => S.boards[S.mode];
+const pieceOf = id => board().find(p => p.id === id);
+const elOf = id => $('world').querySelector(`[data-id="${id}"]`);
 
-        const FULL_FOX_SVG = `<svg viewBox="0 0 120 100" aria-hidden="true">
-            <path d="M38 62 Q12 52 10 68 Q9 83 34 78 Q44 75 46 66 Z" fill="#EA580C" stroke="#9A3412" stroke-width="1.6" stroke-linejoin="round"/>
-            <path d="M19 58 Q10 60 10 68 Q10 76 20 77 Q24 68 19 58 Z" fill="#FFFBEB"/>
-            <path d="M44 68 L41 89 L47 89 L50 70 Z" fill="#C2410C"/>
-            <path d="M41 80 L41 90 L47 90 L47 80 Z" fill="#292524"/>
-            <path d="M51 68 L49 91 L56 91 L58 69 Z" fill="#EA580C"/>
-            <path d="M49 81 L49 92 L56 92 L56 81 Z" fill="#1C1917"/>
-            <path d="M74 68 L73 89 L79 89 L80 68 Z" fill="#C2410C"/>
-            <path d="M73 80 L73 90 L79 90 L79 80 Z" fill="#292524"/>
-            <path d="M81 67 L82 91 L89 91 L87 66 Z" fill="#EA580C"/>
-            <path d="M82 81 L82 92 L89 92 L89 81 Z" fill="#1C1917"/>
-            <ellipse cx="64" cy="61" rx="24" ry="14" fill="#F97316" stroke="#9A3412" stroke-width="1.6"/>
-            <path d="M76 49 Q91 53 88 68 Q79 71 74 63 Q72 55 76 49 Z" fill="#FFFBEB"/>
-            <path d="M74 28 L71 12 L84 22 Z" fill="#EA580C" stroke="#9A3412" stroke-width="1.5" stroke-linejoin="round"/>
-            <path d="M72 16 L71 12 L76 15 Z" fill="#1C1917"/>
-            <path d="M87 26 L94 11 L99 27 Z" fill="#F97316" stroke="#9A3412" stroke-width="1.5" stroke-linejoin="round"/>
-            <path d="M92 15 L94 11 L96 16 Z" fill="#1C1917"/>
-            <path d="M89 24 L93 15 L96 24 Z" fill="#FED7AA"/>
-            <path d="M72 36 Q72 22 88 22 Q100 22 103 33 L113 38 Q108 46 95 47 Q74 48 72 36 Z" fill="#F97316" stroke="#9A3412" stroke-width="1.6" stroke-linejoin="round"/>
-            <path d="M82 39 Q94 37 112 38 Q107 46 94 47 Q83 47 82 39 Z" fill="#FFFBEB"/>
-            <circle cx="112" cy="38" r="3" fill="#1C1917"/>
-            <circle cx="91" cy="31" r="2.7" fill="#1C1917"/>
-            <circle cx="91.8" cy="30.2" r="0.9" fill="#FFFFFF"/>
-            <ellipse cx="86" cy="36" rx="2.5" ry="1.5" fill="#FB7185" opacity="0.5"/>
-            <path d="M97 42 Q102 44.5 106 41.5" fill="none" stroke="#78350F" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>`;
+// ---------- sound (Web Audio, nothing to download) ----------
+let ac = null;
+function tone(freq, dur = 0.12, at = 0) {
+    if (!S.sound || !hadGesture) return;
+    try {
+        ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+        if (ac.state === 'suspended') ac.resume();
+        const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + at;
+        o.type = 'triangle'; o.frequency.value = freq;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.16, t + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur + 0.03);
+    } catch (_) {}
+}
+const SFX = {
+    pop: () => tone(523), drop: () => tone(392), del: () => tone(165, 0.16), oops: () => { tone(247, 0.14); tone(208, 0.18, 0.12); },
+    snap: () => { tone(659, 0.08); tone(880, 0.12, 0.07); },
+    fanfare: () => [262, 330, 392, 523].forEach((f, i) => tone(f, i === 3 ? 0.4 : 0.16, i * 0.12))
+};
+function say(text) {
+    if (!S.sound || !hadGesture || !('speechSynthesis' in window)) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.95; speechSynthesis.speak(u); } catch (_) {}
+}
 
-        const MAYFLOWER_SVG = `<svg viewBox="0 0 110 100" aria-hidden="true">
-            <rect x="42" y="14" width="4" height="52" fill="#78350F"/>
-            <rect x="68" y="20" width="4" height="46" fill="#78350F"/>
-            <polygon points="44,12 58,15 44,19" fill="#EF4444"/>
-            <polygon points="70,18 82,21 70,24" fill="#F59E0B"/>
-            <path d="M24 24 Q44 19 60 24 Q55 42 60 56 Q44 51 24 56 Q30 40 24 24 Z" fill="#FFFBEB" stroke="#D97706" stroke-width="1.6"/>
-            <path d="M36 39 L48 39 M42 32 L42 47" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round"/>
-            <path d="M56 28 Q70 24 84 28 Q80 42 84 54 Q70 50 56 54 Q61 41 56 28 Z" fill="#FEF3C7" stroke="#D97706" stroke-width="1.6"/>
-            <path d="M14 60 L96 60 L84 82 L26 82 Z" fill="#92400E" stroke="#451A03" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M18 66 L92 66" stroke="#F59E0B" stroke-width="3"/>
-            <circle cx="36" cy="73" r="3" fill="#FDE047"/>
-            <circle cx="55" cy="73" r="3" fill="#FDE047"/>
-            <circle cx="74" cy="73" r="3" fill="#FDE047"/>
-            <path d="M8 84 Q20 79 32 84 T56 84 T80 84 T102 84" fill="none" stroke="#0284C7" stroke-width="4" stroke-linecap="round"/>
-        </svg>`;
+// ---------- drawing ----------
+const tf = p => `rotate(${p.rot}) scale(${(p.flip ? -1 : 1) * p.s} ${p.s})`;
+function boardSVG(mode, pieces) {
+    const m = MODES[mode];
+    return pieces.map((p, i) => [p, i]).sort((a, b) => a[0].z - b[0].z || a[1] - b[1])
+        .map(([p]) => `<g transform="translate(${p.x} ${p.y}) ${tf(p)}">${m.byId[p.part].svg}</g>`).join('');
+}
+function targetSVG(mode) {
+    const m = MODES[mode];
+    const pieces = m.slots.map(s => ({ ...s, s: 1, z: m.byId[s.part].z }));
+    return `<svg viewBox="0 0 ${m.W} ${m.H}" role="img" aria-label="${m.label} made of shapes">${boardSVG(mode, pieces)}</svg>`;
+}
+const PAD = 3;
+function placeEl(el, p) {
+    const part = M().byId[p.part];
+    el.style.left = (p.x - part.w / 2 - PAD) + 'px';
+    el.style.top = (p.y - part.h / 2 - PAD) + 'px';
+    el.style.transform = `rotate(${p.rot}deg) scale(${(p.flip ? -1 : 1) * p.s}, ${p.s})`;
+    el.style.zIndex = 1000 + p.z;
+}
+function makeEl(p) {
+    const part = M().byId[p.part], w = part.w + PAD * 2, h = part.h + PAD * 2;
+    const el = document.createElement('div');
+    el.className = 'piece'; el.dataset.id = p.id; el.tabIndex = 0;
+    el.setAttribute('role', 'button'); el.setAttribute('aria-label', part.name + '. Arrow keys move it.');
+    el.style.width = w + 'px'; el.style.height = h + 'px';
+    el.innerHTML = `<svg viewBox="${-w / 2} ${-h / 2} ${w} ${h}">${part.svg}</svg>`;
+    placeEl(el, p);
+    wireDrag(el, p.id);
+    el.addEventListener('focus', () => select(p.id));
+    return el;
+}
+function renderPieces() {
+    const world = $('world'), refocus = document.activeElement && document.activeElement.classList.contains('piece');
+    world.querySelectorAll('.piece').forEach(e => e.remove());
+    board().forEach(p => world.appendChild(makeEl(p)));
+    if (sel != null && !pieceOf(sel)) sel = null;
+    showSelection();
+    if (refocus && sel != null) elOf(sel).focus({ preventScroll: true });
+    updateCounts();
+}
+function updateCounts() {
+    const m = M(), b = board();
+    let placed = 0;
+    m.parts.forEach(part => {
+        const have = b.filter(p => p.part === part.id).length, left = Math.max(0, part.need - have);
+        placed += Math.min(have, part.need);
+        const card = $('part-' + part.id);
+        card.classList.toggle('done', left === 0);
+        card.querySelector('.left').textContent = left === 0 ? '✓' : '×' + left;
+        card.setAttribute('aria-label', `Add ${part.name}. ${left} more needed.`);
+    });
+    $('progress').textContent = `${placed} of ${m.slots.length} shapes placed`;
+    $('btn-done').classList.toggle('ready', placed === m.slots.length);
+    $('btn-undo').disabled = undoStack[S.mode].length === 0;
+    $('empty-tip').hidden = b.length > 0;
+}
+function showSelection() {
+    $('world').querySelectorAll('.piece.sel').forEach(e => e.classList.remove('sel'));
+    const p = sel != null && pieceOf(sel);
+    $('tools').hidden = !p;
+    if (!p) return;
+    elOf(sel).classList.add('sel');
+    const part = M().byId[p.part];
+    $('tool-name').innerHTML = `<b>${part.name}</b> · ${KIND[part.kind].fact}`;
+}
+function select(id) { if (sel !== id) { sel = id; showSelection(); } }
+function deselect() { sel = null; showSelection(); }
 
-        const SCARECROW_SVG = `<svg viewBox="0 0 100 110" aria-hidden="true">
-            <rect x="47" y="45" width="6" height="60" rx="2" fill="#92400E"/>
-            <rect x="18" y="48" width="64" height="6" rx="3" fill="#92400E"/>
-            <path d="M18 46 L9 42 M18 51 L8 51 M18 55 L10 59" stroke="#FACC15" stroke-width="3" stroke-linecap="round"/>
-            <path d="M82 46 L91 42 M82 51 L92 51 M82 55 L90 59" stroke="#FACC15" stroke-width="3" stroke-linecap="round"/>
-            <path d="M22 44 L78 44 L78 58 L66 58 L68 86 L32 86 L34 58 L22 58 Z" fill="#EA580C" stroke="#9A3412" stroke-width="1.5"/>
-            <path d="M35 54 L65 54 L68 86 L53 86 L50 76 L47 86 L32 86 Z" fill="#2563EB" stroke="#1E3A8A" stroke-width="1.5"/>
-            <rect x="54" y="64" width="8" height="8" rx="1.5" fill="#FBBF24" stroke="#92400E" stroke-width="1.2"/>
-            <path d="M30 33 L24 38 M32 36 L26 42 M70 33 L76 38 M68 36 L74 42" stroke="#FACC15" stroke-width="3" stroke-linecap="round"/>
-            <circle cx="50" cy="32" r="14" fill="#FDE68A" stroke="#B45309" stroke-width="1.6"/>
-            <circle cx="45" cy="30" r="2" fill="#1C1917"/>
-            <circle cx="55" cy="30" r="2" fill="#1C1917"/>
-            <polygon points="50,31 47,36 53,36" fill="#F97316"/>
-            <path d="M43 38 Q50 43 57 38" fill="none" stroke="#78350F" stroke-width="1.8" stroke-linecap="round"/>
-            <ellipse cx="50" cy="21" rx="26" ry="5" fill="#FACC15" stroke="#CA8A04" stroke-width="1.5"/>
-            <path d="M36 21 L40 8 Q50 5 60 8 L64 21 Z" fill="#FDE047" stroke="#CA8A04" stroke-width="1.5"/>
-            <rect x="37" y="16" width="26" height="4" fill="#DC2626"/>
-        </svg>`;
+// Fit the picture into the free part of the stage (clear of the Copy This card and the toolbar).
+function layout() {
+    const st = $('stage'), m = M(), sw = st.clientWidth, sh = st.clientHeight;
+    if (!sw || !sh) return;
+    const wide = sw >= 640, cardW = wide ? $('target').offsetWidth + 24 : 0;
+    const left = 16, top = 16, aw = sw - 32 - cardW, ah = sh - top - 76;
+    const u = Math.max(0.45, Math.min(aw / m.W, ah / m.H, 2.2));
+    view = { u, ox: left + (aw - m.W * u) / 2, oy: top + Math.max(0, (ah - m.H * u) / 2) };
+    const w = $('world');
+    w.style.width = m.W + 'px'; w.style.height = m.H + 'px';
+    w.style.transform = `translate(${view.ox}px, ${view.oy}px) scale(${u})`;
+}
+function clampToStage(p) {
+    const st = $('stage'), { u, ox, oy } = view;
+    p.x = Math.max((8 - ox) / u, Math.min((st.clientWidth - 8 - ox) / u, p.x));
+    p.y = Math.max((8 - oy) / u, Math.min((st.clientHeight - 8 - oy) / u, p.y));
+}
 
-        const COZY_CABIN_SVG = `<svg viewBox="0 0 100 100" aria-hidden="true">
-            <rect x="66" y="18" width="11" height="24" fill="#78716C" stroke="#44403C" stroke-width="1.5"/>
-            <circle cx="72" cy="12" r="4" fill="#E2E8F0" opacity="0.85"/>
-            <circle cx="77" cy="7" r="5" fill="#F1F5F9" opacity="0.75"/>
-            <rect x="20" y="46" width="60" height="42" rx="3" fill="#B45309" stroke="#78350F" stroke-width="2"/>
-            <line x1="20" y1="56" x2="80" y2="56" stroke="#78350F" stroke-width="2"/>
-            <line x1="20" y1="66" x2="80" y2="66" stroke="#78350F" stroke-width="2"/>
-            <line x1="20" y1="76" x2="80" y2="76" stroke="#78350F" stroke-width="2"/>
-            <polygon points="12,48 50,18 88,48" fill="#78350F" stroke="#451A03" stroke-width="2" stroke-linejoin="round"/>
-            <rect x="30" y="62" width="16" height="26" rx="2" fill="#451A03"/>
-            <circle cx="42" cy="76" r="1.8" fill="#FBBF24"/>
-            <rect x="54" y="58" width="16" height="15" rx="2" fill="#FEF08A" stroke="#451A03" stroke-width="2"/>
-            <line x1="62" y1="58" x2="62" y2="73" stroke="#451A03" stroke-width="1.5"/>
-            <line x1="54" y1="65.5" x2="70" y2="65.5" stroke="#451A03" stroke-width="1.5"/>
-        </svg>`;
+// ---------- editing ----------
+function remember(snapshot) {
+    const stack = undoStack[S.mode];
+    stack.push(snapshot || JSON.stringify(board()));
+    if (stack.length > 60) stack.shift();
+}
+function changed(full) { full ? renderPieces() : updateCounts(); persist(); }
+function undo() {
+    const snap = undoStack[S.mode].pop();
+    if (!snap) return;
+    S.boards[S.mode] = JSON.parse(snap);
+    changed(true); SFX.pop(); toast('Undone!');
+}
+function addPart(part) {
+    remember();
+    const m = M(), j = () => (Math.random() - 0.5) * 50;
+    const p = { id: uid++, part: part.id, x: m.W / 2 + j(), y: m.H / 2 + j(), rot: 0, flip: false, s: 1, z: Math.max(0, ...board().map(q => q.z)) + 1 };
+    clampToStage(p);
+    board().push(p); sel = p.id;
+    changed(true); SFX.pop(); say(part.name);
+}
+function act(name) {
+    const p = sel != null && pieceOf(sel);
+    if (!p) return;
+    remember();
+    const zs = board().map(q => q.z);
+    if (name === 'rotR') p.rot = (p.rot + 15) % 360;
+    else if (name === 'rotL') p.rot = (p.rot + 345) % 360;
+    else if (name === 'flip') p.flip = !p.flip;
+    else if (name === 'bigger' || name === 'smaller') {
+        const k = Math.round(Math.log(p.s) / Math.log(1.1)) + (name === 'bigger' ? 1 : -1);
+        p.s = +Math.pow(1.1, Math.max(-7, Math.min(7, k))).toFixed(4);
+    }
+    else if (name === 'front') p.z = Math.max(...zs) + 1;
+    else if (name === 'back') p.z = Math.min(...zs) - 1;
+    else if (name === 'del') {
+        S.boards[S.mode] = board().filter(q => q !== p); sel = null;
+        changed(true); SFX.del(); return;
+    }
+    placeEl(elOf(p.id), p); changed(false); SFX.pop();
+}
+function nudge(dx, dy) {
+    const p = sel != null && pieceOf(sel);
+    if (!p) return;
+    remember(); p.x += dx; p.y += dy; clampToStage(p);
+    placeEl(elOf(p.id), p); changed(false);
+}
+// Easy level: a shape dropped near its place in the outline jumps into it, turned the right way.
+function trySnap(p) {
+    const b = board();
+    let best = null, bestD = 34;
+    for (const s of M().slots) {
+        if (s.part !== p.part) continue;
+        if (b.some(q => q !== p && q.part === p.part && Math.hypot(q.x - s.x, q.y - s.y) < 6)) continue;
+        const d = Math.hypot(p.x - s.x, p.y - s.y);
+        if (d < bestD) { best = s; bestD = d; }
+    }
+    if (!best) return false;
+    Object.assign(p, { x: best.x, y: best.y, rot: (best.rot + 360) % 360, flip: best.flip, s: 1, z: M().byId[p.part].z - 100 });
+    return true;
+}
+function wireDrag(el, id) {
+    let drag = null;
+    el.addEventListener('pointerdown', e => {
+        if (e.button > 0) return;
+        const p = pieceOf(id); if (!p) return;
+        e.stopPropagation(); select(id);
+        drag = { px: e.clientX, py: e.clientY, x: p.x, y: p.y, snap: JSON.stringify(board()), moved: false };
+        el.classList.add('drag');
+        try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    el.addEventListener('pointermove', e => {
+        const p = drag && pieceOf(id); if (!p) return;
+        const dx = (e.clientX - drag.px) / view.u, dy = (e.clientY - drag.py) / view.u;
+        if (!drag.moved && Math.hypot(dx, dy) * view.u < 3) return;
+        drag.moved = true;
+        p.x = drag.x + dx; p.y = drag.y + dy; clampToStage(p); placeEl(el, p);
+    });
+    const end = e => {
+        if (!drag) return;
+        const d = drag, p = pieceOf(id); drag = null;
+        el.classList.remove('drag');
+        try { el.releasePointerCapture(e.pointerId); } catch (_) {}
+        if (!d.moved || !p) return;
+        remember(d.snap);
+        if (S.level === 'easy' && trySnap(p)) { placeEl(el, p); SFX.snap(); } else SFX.drop();
+        changed(false);
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+}
 
-        // --- 2. FESTIVE ASSETS ---
-        const STICKERS = [
-            { id: 'pilgrim_boy', name: 'Pilgrim Boy', isPilgrim: true, renderSvg: getPilgrimBoySVG },
-            { id: 'pilgrim_girl', name: 'Pilgrim Girl', isPilgrim: true, renderSvg: getPilgrimGirlSVG },
-            { id: 'turkey', name: 'Tom Turkey', emoji: '🦃' },
-            { id: 'fox', name: 'Autumn Fox', svg: FULL_FOX_SVG },
-            { id: 'mayflower', name: 'Mayflower Ship', svg: MAYFLOWER_SVG },
-            { id: 'pie', name: 'Pumpkin Pie', emoji: '🥧' },
-            { id: 'pumpkin', name: 'Pumpkin', emoji: '🎃' },
-            { id: 'corn', name: 'Harvest Corn', emoji: '🌽' },
-            { id: 'cornucopia', name: 'Horn of Plenty', svg: `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M15 70 Q25 20 85 35 Q75 80 25 82 Z" fill="#B45309" stroke="#78350F" stroke-width="3"/><ellipse cx="75" cy="56" rx="16" ry="22" fill="#451A03"/><circle cx="78" cy="48" r="10" fill="#EA580C"/><circle cx="84" cy="60" r="9" fill="#DC2626"/><circle cx="72" cy="64" r="9" fill="#FACC15"/></svg>` },
-            { id: 'scarecrow', name: 'Scarecrow', svg: SCARECROW_SVG },
-            { id: 'cabin', name: 'Cozy Cabin', svg: COZY_CABIN_SVG },
-            { id: 'hat', name: 'Pilgrim Hat', svg: `<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="80" rx="44" ry="12" fill="#292524"/><path d="M24 80 L30 22 Q50 15 70 22 L76 80 Z" fill="#44403C"/><rect x="27" y="62" width="46" height="12" fill="#D97706"/><rect x="40" y="59" width="20" height="18" rx="3" fill="none" stroke="#FBBF24" stroke-width="5"/></svg>` },
-            { id: 'drumstick', name: 'Drumstick', emoji: '🍗' },
-            { id: 'leaf_maple', name: 'Maple Leaf', emoji: '🍁' },
-            { id: 'leaf_fallen', name: 'Autumn Leaves', emoji: '🍂' },
-            { id: 'acorn', name: 'Acorn', emoji: '🌰' },
-            { id: 'sunflower', name: 'Sunflower', emoji: '🌻' },
-            { id: 'apple', name: 'Red Apple', emoji: '🍎' },
-            { id: 'bread', name: 'Warm Bread', emoji: '🍞' },
-            { id: 'carrot', name: 'Carrot', emoji: '🥕' },
-            { id: 'potato', name: 'Sweet Potato', emoji: '🍠' },
-            { id: 'berries', name: 'Wild Berries', emoji: '🫐' },
-            { id: 'honey', name: 'Sweet Honey', emoji: '🍯' },
-            { id: 'squirrel', name: 'Squirrel', emoji: '🐿️' },
-            { id: 'owl', name: 'Wise Owl', emoji: '🦉' },
-            { id: 'hedgehog', name: 'Hedgehog', emoji: '🦔' },
-            { id: 'raccoon', name: 'Raccoon', emoji: '🦝' },
-            { id: 'deer', name: 'Forest Deer', emoji: '🦌' },
-            { id: 'tractor', name: 'Farm Tractor', emoji: '🚜' },
-            { id: 'campfire', name: 'Campfire', emoji: '🔥' },
-            { id: 'sparkles', name: 'Sparkles', emoji: '✨' },
-            { id: 'heart', name: 'Thankful Heart', emoji: '🧡' }
-        ];
-        const STICKER_BY_ID = Object.fromEntries(STICKERS.map(s => [s.id, s]));
-
-        const SCENES = [
-            { id: 'meadow', name: 'Autumn Meadow', bgStyle: 'background: linear-gradient(to bottom, #BAE6FD 0%, #FEF3C7 62%, #D97706 62%, #B45309 100%);' },
-            { id: 'sunset', name: 'Harvest Sunset', bgStyle: 'background: linear-gradient(to bottom, #F97316 0%, #FDE047 58%, #92400E 58%, #78350F 100%);' },
-            { id: 'table', name: 'Feast Table', bgStyle: 'background: linear-gradient(to bottom, #FEF3C7 0%, #FDE68A 55%, #9A3412 55%, #7C2D12 100%);' },
-            { id: 'forest', name: 'Cozy Woods', bgStyle: 'background: linear-gradient(to bottom, #FDBA74 0%, #FED7AA 60%, #65A30D 60%, #4D7C0F 100%);' },
-            { id: 'night', name: 'Starry Harvest', bgStyle: 'background: linear-gradient(to bottom, #1E1B4B 0%, #312E81 62%, #78350F 62%, #451A03 100%);' },
-            { id: 'quilt', name: 'Warm Plaid', bgStyle: 'background-color: #FEF3C7; background-image: repeating-linear-gradient(45deg, rgba(245, 158, 11, 0.18) 0, rgba(245, 158, 11, 0.18) 20px, transparent 20px, transparent 40px), repeating-linear-gradient(-45deg, rgba(220, 38, 38, 0.12) 0, rgba(220, 38, 38, 0.12) 20px, transparent 20px, transparent 40px);' }
-        ];
-
-        const SOUNDS = [
-            { id: 'gobble', name: 'Turkey Gobble', icon: '🦃' },
-            { id: 'boing', name: 'Silly Boing', icon: '🦘' },
-            { id: 'tada', name: 'Ta-Da Fanfare', icon: '🎺' },
-            { id: 'crunch', name: 'Leaf Crunch', icon: '🍂' },
-            { id: 'pop', name: 'Happy Pop', icon: '🎈' },
-            { id: 'chime', name: 'Magic Chime', icon: '✨' }
-        ];
-
-        const STORY_IDEAS = [
-            'Sail the Mayflower Ship across the Starry Harvest ocean!',
-            'Have the Pilgrim Boy, Pilgrim Girl, and Tom Turkey share a Thanksgiving feast!',
-            'Make the Autumn Fox and Squirrel race through falling leaves!',
-            'Build a cozy autumn farm with the Scarecrow, Tractor, and Cozy Cabin!',
-            'Make the pie disappear one bite at a time!',
-            'Make a turkey waddle across the meadow. Turn it a little on each slide!',
-            'Make leaves fall from the top of the stage to the ground.',
-            'Make a squirrel sneak up and take the acorn.',
-            'Fill the feast table with one new food on every slide.',
-            'Make the pumpkin grow bigger and bigger, then say "Ta-da!"',
-            'Make the owl fly across the Starry Harvest sky.',
-            'Show something you are thankful for and add a Thankful Heart.'
-        ];
-
-        const HOLD_NAMES = { 1: 'Normal', 2: 'Longer', 3: 'Longest' };
-        const SAVE_KEY = 'tsa_project_v1';
-        const READ_KEY = 'tsa_read_aloud';
-        const CODE_PREFIX = 'TSA1.';
-
-        // --- 3. APPLICATION STATE ---
-        let slides = [];
-        let currentSlideIndex = 0;
-        let selectedItemId = null;
-        let currentTextStyle = 'bubble';
-        let defaultPilgrimSkin = '#F6C8A8';
-        let projectTitle = '';
-        let isExample = false;
-        let ideaText = '';
-        let undoStack = [];
-        let readAloud = false;
-
-        // Animation Playback State
-        let isPlayingAnimation = false;
-        let previewFrameIndex = 0;
-        let playbackSpeedMs = 650;
-        let playbackTimer = null;
-
-        function generateId() {
-            return 'id_' + Math.random().toString(36).slice(2, 11);
-        }
-
-        function blankSlide(sceneId) {
-            return { id: generateId(), sceneId: sceneId || 'meadow', soundId: null, hold: 1, items: [] };
-        }
-
-        function stickerItem(stickerId, x, y, extra) {
-            const sticker = STICKER_BY_ID[stickerId];
-            const base = { id: generateId(), type: 'sticker', stickerId, x, y, scale: 1, flipX: 1, rot: 0 };
-            if (sticker && sticker.isPilgrim) {
-                base.skin = (extra && extra.skin) ? extra.skin : defaultPilgrimSkin;
+// ---------- checking the picture ----------
+const median = a => { const s = [...a].sort((x, y) => x - y); return s.length ? s[s.length >> 1] : 0; };
+function checkBoard() {
+    const m = M(), b = board();
+    const missing = m.parts.map(part => ({ part, n: part.need - b.filter(p => p.part === part.id).length })).filter(x => x.n > 0);
+    // The picture may be built anywhere on the stage: line it up using the one-of-a-kind shapes.
+    const dxs = [], dys = [];
+    m.slots.forEach(s => {
+        if (m.byId[s.part].need !== 1) return;
+        const p = b.find(q => q.part === s.part);
+        if (p) { dxs.push(p.x - s.x); dys.push(p.y - s.y); }
+    });
+    const ox = median(dxs), oy = median(dys), used = new Set();
+    let open = 0;
+    m.slots.forEach(s => {
+        const part = m.byId[s.part], tol = Math.min(30, 14 + 0.15 * Math.max(part.w, part.h));
+        let best = null, bestD = tol;
+        b.forEach(p => {
+            if (p.part !== s.part || used.has(p.id)) return;
+            const d = Math.hypot(p.x - ox - s.x, p.y - oy - s.y);
+            if (d <= bestD) { best = p; bestD = d; }
+        });
+        best ? used.add(best.id) : open++;
+    });
+    return { missing, open, loose: b.filter(p => !used.has(p.id)).map(p => p.id) };
+}
+function done() {
+    deselect();
+    if (!board().length) { toast('Add some shapes first!'); SFX.oops(); return; }
+    const r = checkBoard();
+    if (r.missing.length) {
+        const list = r.missing.slice(0, 2).map(x => `${x.n} ${x.part.name}${x.n > 1 ? 's' : ''}`).join(' and ');
+        toast(`Keep going! You still need ${list}${r.missing.length > 2 ? ' and more' : ''}.`, 4200);
+        SFX.oops(); return;
+    }
+    if (r.open) {
+        toast(`So close! Move the wiggling shape${r.loose.length === 1 ? '' : 's'} to match the picture.`, 4200);
+        r.loose.forEach(id => { const el = elOf(id); if (el) { el.classList.add('wiggle'); setTimeout(() => el.classList.remove('wiggle'), 1600); } });
+        SFX.oops(); return;
+    }
+    SFX.fanfare(); confetti();
+    toast(`🎉 You built the ${M().label}! Happy Thanksgiving!`, 2600);
+    setTimeout(askCount, 1700);
+}
+// Math question after a finished picture.
+function askCount() {
+    const m = M(), counts = {};
+    m.slots.forEach(s => { const k = m.byId[s.part].kind; counts[k] = (counts[k] || 0) + 1; });
+    const kinds = Object.keys(counts).filter(k => counts[k] >= 2 && !(k === 'rectangle' && counts.square));
+    const kind = kinds[Math.floor(Math.random() * kinds.length)], answer = counts[kind];
+    const opts = new Set([answer]);
+    while (opts.size < 4) { const n = answer + Math.floor(Math.random() * 6) - 2; if (n > 0) opts.add(n); }
+    const glow = on => board().forEach(p => { const el = elOf(p.id); if (el) el.classList.toggle('count', on && m.byId[p.part].kind === kind); });
+    glow(true);
+    const ask = note => openModal(`How many ${KIND[kind].plural} are in your ${m.label}?`,
+        note || `Count the glowing shapes. A ${kind} is ${KIND[kind].fact}.`,
+        [...opts].sort((a, b) => a - b).map(n => ({
+            label: String(n), cls: 'num', keep: true,
+            on: () => {
+                if (n !== answer) { SFX.oops(); ask('Not quite. Count the glowing shapes one more time!'); return; }
+                SFX.fanfare(); glow(false);
+                openModal(`Yes! ${answer} ${KIND[kind].plural}.`, 'Great counting. Save your picture or try another one!',
+                    [{ label: '📸 Save picture', cls: 'go', on: savePicture }, { label: 'Keep building' }]);
             }
-            return Object.assign(base, extra || {});
-        }
-
-        function textItem(text, style, x, y, extra) {
-            return Object.assign({ id: generateId(), type: 'text', text, style, x, y, scale: 1, flipX: 1, rot: 0 }, extra || {});
-        }
-
-        function buildExampleAnimation() {
-            return [
-                {
-                    id: generateId(), sceneId: 'meadow', soundId: 'gobble', hold: 2,
-                    items: [
-                        stickerItem('pilgrim_girl', 14, 66, { skin: '#B87D52' }),
-                        stickerItem('pie', 86, 72),
-                        stickerItem('turkey', 32, 68, { flipX: -1 }),
-                        textItem('Turkey Wants Pie!', 'banner', 50, 16)
-                    ]
-                },
-                {
-                    id: generateId(), sceneId: 'meadow', soundId: null, hold: 1,
-                    items: [
-                        stickerItem('pilgrim_girl', 14, 66, { skin: '#B87D52' }),
-                        stickerItem('pie', 86, 72),
-                        stickerItem('turkey', 52, 60, { flipX: -1, rot: 15 }),
-                        textItem('Gobble Gobble!', 'bubble', 54, 32)
-                    ]
-                },
-                {
-                    id: generateId(), sceneId: 'meadow', soundId: 'tada', hold: 2,
-                    items: [
-                        stickerItem('pilgrim_girl', 16, 66, { skin: '#B87D52' }),
-                        stickerItem('pie', 86, 72),
-                        stickerItem('turkey', 70, 68, { flipX: -1 }),
-                        textItem('Yummy Pie!', 'bubble', 74, 40)
-                    ]
-                }
-            ];
-        }
-
-        // --- 4. SAVING, LOADING & PROJECT CODES ---
-        function round(n) { return Math.round(n * 100) / 100; }
-
-        function toCompact() {
-            return {
-                v: 1,
-                t: projectTitle,
-                e: isExample ? 1 : 0,
-                s: slides.map(s => ({
-                    c: s.sceneId,
-                    a: s.soundId,
-                    h: s.hold,
-                    i: s.items.map(it => {
-                        if (it.type === 'sticker') {
-                            const row = ['s', it.stickerId, round(it.x), round(it.y), it.scale, it.flipX, it.rot];
-                            if (it.skin) row.push(it.skin);
-                            return row;
-                        }
-                        return ['t', it.text, it.style === 'banner' ? 'n' : 'b', round(it.x), round(it.y), it.scale, it.flipX, it.rot];
-                    })
-                }))
-            };
-        }
-
-        function num(v, min, max, fallback) {
-            return (typeof v === 'number' && isFinite(v)) ? Math.max(min, Math.min(max, v)) : fallback;
-        }
-
-        function parseItem(a) {
-            if (!Array.isArray(a)) return null;
-            if (a[0] === 's' && STICKER_BY_ID[a[1]]) {
-                const extra = {
-                    scale: num(a[4], 0.4, 2.6, 1),
-                    flipX: a[5] === -1 ? -1 : 1,
-                    rot: num(a[6], -360, 360, 0)
-                };
-                if (typeof a[7] === 'string' && /^#[0-9A-Fa-f]{6}$/.test(a[7])) {
-                    extra.skin = a[7].toUpperCase();
-                }
-                return stickerItem(a[1], num(a[2], 4, 96, 50), num(a[3], 6, 94, 50), extra);
-            }
-            if (a[0] === 't' && typeof a[1] === 'string' && a[1].trim()) {
-                return textItem(a[1].slice(0, 40), a[2] === 'n' ? 'banner' : 'bubble', num(a[3], 4, 96, 50), num(a[4], 6, 94, 25), {
-                    scale: num(a[5], 0.4, 2.6, 1), flipX: a[6] === -1 ? -1 : 1, rot: num(a[7], -360, 360, 0)
-                });
-            }
-            return null;
-        }
-
-        function fromCompact(obj) {
-            if (!obj || !Array.isArray(obj.s) || obj.s.length === 0) throw new Error('No slides');
-            const loaded = obj.s.slice(0, 150).map(s => ({
-                id: generateId(),
-                sceneId: SCENES.some(x => x.id === s.c) ? s.c : 'meadow',
-                soundId: SOUNDS.some(x => x.id === s.a) ? s.a : null,
-                hold: [1, 2, 3].includes(s.h) ? s.h : 1,
-                items: (Array.isArray(s.i) ? s.i : []).slice(0, 60).map(parseItem).filter(Boolean)
-            }));
-            return {
-                slides: loaded,
-                title: typeof obj.t === 'string' ? obj.t.slice(0, 30) : '',
-                isExample: obj.e === 1
-            };
-        }
-
-        function encodeProject() {
-            const jsonStr = JSON.stringify(toCompact());
-            return CODE_PREFIX + encodeURIComponent(jsonStr);
-        }
-
-        function decodeProject(code) {
-            const clean = String(code).trim();
-            if (!clean.startsWith(CODE_PREFIX)) throw new Error('Not a project code');
-            const jsonStr = decodeURIComponent(clean.slice(CODE_PREFIX.length));
-            return fromCompact(JSON.parse(jsonStr));
-        }
-
-        let storageWorks = true;
-        function saveLocal() {
-            try {
-                localStorage.setItem(SAVE_KEY, JSON.stringify(toCompact()));
-                storageWorks = true;
-            } catch (err) {
-                storageWorks = false;
-            }
-            updateAutosaveNote();
-        }
-
-        function loadLocal() {
-            try {
-                const raw = localStorage.getItem(SAVE_KEY);
-                if (!raw) return false;
-                const data = fromCompact(JSON.parse(raw));
-                slides = data.slides;
-                projectTitle = data.title;
-                isExample = data.isExample;
-                return true;
-            } catch (err) {
-                return false;
-            }
-        }
-
-        function updateAutosaveNote() {
-            const note = document.getElementById('autosave-note');
-            if (storageWorks) {
-                note.textContent = '✅ Your animation saves by itself on this computer.';
-                note.style.color = '#065F46';
-                note.style.background = '#ECFDF5';
-            } else {
-                note.textContent = '⚠️ This computer can\'t save your animation. Copy your project code to keep it!';
-                note.style.color = '#9F1239';
-                note.style.background = '#FFF1F2';
-            }
-        }
-
-        // --- 5. UNDO ---
-        function pushUndo() {
-            undoStack.push(JSON.stringify({ slides, currentSlideIndex, projectTitle, isExample }));
-            if (undoStack.length > 60) undoStack.shift();
-            document.getElementById('btn-undo').disabled = false;
-        }
-
-        function undo() {
-            if (undoStack.length === 0) {
-                showToast('Nothing to undo!', '↩️');
-                return;
-            }
-            const prev = JSON.parse(undoStack.pop());
-            slides = prev.slides;
-            currentSlideIndex = Math.min(prev.currentSlideIndex, slides.length - 1);
-            projectTitle = prev.projectTitle;
-            isExample = prev.isExample;
-            selectedItemId = null;
-            document.getElementById('btn-undo').disabled = undoStack.length === 0;
-            refresh();
-            showToast('Undone!', '↩️');
-        }
-
-        function refresh() {
-            renderCurrentSlide();
-            renderFilmstrip();
-            renderIdeaBar();
-            saveLocal();
-        }
-
-        // --- 6. NATIVE WEB AUDIO API SYNTHESIZER (Zero External Libraries) ---
-        let audioCtx = null;
-
-        function getAudioContext() {
-            if (!audioCtx) {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                if (AudioContextClass) {
-                    audioCtx = new AudioContextClass();
-                }
-            }
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            return audioCtx;
-        }
-
-        function playTone(ctx, freq, startTime, duration, type = 'sine', gainPeak = 0.25) {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, startTime);
-
-            gain.gain.setValueAtTime(0.001, startTime);
-            gain.gain.linearRampToValueAtTime(gainPeak, startTime + 0.015);
-            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(startTime);
-            osc.stop(startTime + duration + 0.02);
-        }
-
-        function playSoundEffect(soundId) {
-            if (!soundId) return;
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                const now = ctx.currentTime;
-
-                if (soundId === 'gobble') {
-                    const notes = [392.0, 329.63, 440.0, 349.23, 392.0, 293.66];
-                    notes.forEach((freq, idx) => {
-                        playTone(ctx, freq, now + idx * 0.065, 0.08, 'sawtooth', 0.16);
-                    });
-                } else if (soundId === 'boing') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(130.81, now);
-                    osc.frequency.exponentialRampToValueAtTime(523.25, now + 0.28);
-
-                    gain.gain.setValueAtTime(0.01, now);
-                    gain.gain.linearRampToValueAtTime(0.28, now + 0.03);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
-
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.38);
-                } else if (soundId === 'tada') {
-                    [261.63, 329.63, 392.0].forEach(f => playTone(ctx, f, now, 0.16, 'triangle', 0.18));
-                    [261.63, 329.63, 392.0, 523.25].forEach(f => playTone(ctx, f, now + 0.18, 0.55, 'triangle', 0.2));
-                } else if (soundId === 'crunch') {
-                    const bufferSize = Math.floor(ctx.sampleRate * 0.12);
-                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                    const data = buffer.getChannelData(0);
-                    for (let i = 0; i < bufferSize; i++) {
-                        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
-                    }
-                    [0, 0.11].forEach(offset => {
-                        const noise = ctx.createBufferSource();
-                        noise.buffer = buffer;
-                        const filter = ctx.createBiquadFilter();
-                        filter.type = 'bandpass';
-                        filter.frequency.value = 1200;
-                        const gain = ctx.createGain();
-                        gain.gain.setValueAtTime(0.35, now + offset);
-                        noise.connect(filter);
-                        filter.connect(gain);
-                        gain.connect(ctx.destination);
-                        noise.start(now + offset);
-                    });
-                } else if (soundId === 'pop') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(220, now);
-                    osc.frequency.exponentialRampToValueAtTime(620, now + 0.07);
-                    gain.gain.setValueAtTime(0.28, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.1);
-                } else if (soundId === 'chime') {
-                    const notes = [523.25, 659.25, 783.99, 987.77, 1046.5];
-                    notes.forEach((freq, idx) => {
-                        playTone(ctx, freq, now + idx * 0.06, 0.28, 'triangle', 0.18);
-                    });
-                }
-            } catch (err) {
-                console.warn('Audio playback skipped:', err);
-            }
-        }
-
-        // --- 7. READ TO ME ---
-        const canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
-
-        function cleanForSpeech(text) {
-            return String(text)
-                .replace(/[\p{Extended_Pictographic}️‍↺↻◀▶✕]/gu, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
-        }
-
-        function speak(text, interrupt) {
-            if (!readAloud || !canSpeak) return;
-            const words = cleanForSpeech(text);
-            if (!words) return;
-            try {
-                if (interrupt) window.speechSynthesis.cancel();
-                const u = new SpeechSynthesisUtterance(words);
-                u.rate = 0.9;
-                window.speechSynthesis.speak(u);
-            } catch (err) { /* speech not available */ }
-        }
-
-        function setReadAloud(on) {
-            readAloud = on;
-            document.getElementById('read-label').textContent = on ? 'Read to Me: On' : 'Read to Me: Off';
-            const btn = document.getElementById('btn-read');
-            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            btn.classList.toggle('ring-active', on);
-            try { localStorage.setItem(READ_KEY, on ? '1' : '0'); } catch (err) { /* fine */ }
-            if (!on && canSpeak) window.speechSynthesis.cancel();
-        }
-
-        // --- 8. PILGRIM SKIN COLOR PICKER & TOOLBOX RENDERING ---
-        function getStickerVisualHTML(sticker, skinHex) {
-            if (sticker.isPilgrim && typeof sticker.renderSvg === 'function') {
-                return sticker.renderSvg(skinHex || defaultPilgrimSkin);
-            }
-            return sticker.svg ? sticker.svg : sticker.emoji;
-        }
-
-        function getSkinToneObj(hex) {
-            const upper = String(hex || '').toUpperCase();
-            return SKIN_TONES.find(t => t.hex.toUpperCase() === upper) || SKIN_TONES[1];
-        }
-
-        function buildSkinSwatchButtons(containerId, activeHex, onPick) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            container.innerHTML = '';
-            const normalizedActive = String(activeHex || defaultPilgrimSkin).toUpperCase();
-
-            SKIN_TONES.forEach(tone => {
-                const isSelected = tone.hex.toUpperCase() === normalizedActive;
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = `skin-swatch ${isSelected ? 'active' : ''}`;
-                btn.style.backgroundColor = tone.hex;
-                btn.title = tone.name;
-                btn.setAttribute('aria-label', `${tone.name} skin color`);
-                btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
-                btn.dataset.say = `${tone.name} skin color`;
-                btn.onclick = () => onPick(tone);
-                container.appendChild(btn);
-            });
-        }
-
-        function renderToolboxSkinPicker() {
-            const tone = getSkinToneObj(defaultPilgrimSkin);
-            document.getElementById('toolbox-skin-name').textContent = tone.name;
-            buildSkinSwatchButtons('toolbox-skin-swatches', defaultPilgrimSkin, (pickedTone) => {
-                defaultPilgrimSkin = pickedTone.hex;
-                renderToolboxSkinPicker();
-                renderStickerToolbox();
-
-                const sel = getSelectedItem();
-                if (sel && sel.type === 'sticker' && STICKER_BY_ID[sel.stickerId]?.isPilgrim) {
-                    pushUndo();
-                    sel.skin = pickedTone.hex;
-                    refresh();
-                } else {
-                    playSoundEffect('pop');
-                }
-                showToast(`Pilgrim skin color: ${pickedTone.name}`, '🎨');
-            });
-        }
-
-        function updateSelectedPilgrimSkinUI() {
-            const bar = document.getElementById('selected-pilgrim-skin-bar');
-            const sel = getSelectedItem();
-            const isPilgrimSelected = sel && sel.type === 'sticker' && STICKER_BY_ID[sel.stickerId]?.isPilgrim;
-
-            if (!isPilgrimSelected) {
-                bar.hidden = true;
-                return;
-            }
-
-            bar.hidden = false;
-            const currentHex = sel.skin || defaultPilgrimSkin;
-            const tone = getSkinToneObj(currentHex);
-            document.getElementById('selected-skin-name').textContent = tone.name;
-
-            buildSkinSwatchButtons('selected-skin-swatches', currentHex, (pickedTone) => {
-                const activeItem = getSelectedItem();
-                if (!activeItem || !STICKER_BY_ID[activeItem.stickerId]?.isPilgrim) return;
-                pushUndo();
-                activeItem.skin = pickedTone.hex;
-                defaultPilgrimSkin = pickedTone.hex;
-                renderToolboxSkinPicker();
-                renderStickerToolbox();
-                playSoundEffect('pop');
-                refresh();
-                showToast(`Changed Pilgrim skin to ${pickedTone.name}!`, '🎨');
-            });
-        }
-
-        function renderStickerToolbox() {
-            const grid = document.getElementById('sticker-grid');
-            grid.innerHTML = '';
-            document.getElementById('sticker-count').textContent = `${STICKERS.length} Fun Items`;
-            STICKERS.forEach(sticker => {
-                const btn = document.createElement('button');
-                btn.className = 'btn-bounce sticker-btn';
-                btn.title = sticker.name;
-                btn.dataset.say = sticker.name;
-                btn.innerHTML = `
-                    <div class="toolbox-svg">
-                        ${getStickerVisualHTML(sticker, defaultPilgrimSkin)}
-                    </div>
-                    <span class="sticker-name">${sticker.name}</span>
-                `;
-                btn.onclick = () => addStickerToSlide(sticker);
-                grid.appendChild(btn);
-            });
-        }
-
-        function renderSceneToolbox() {
-            const grid = document.getElementById('scene-grid');
-            grid.innerHTML = '';
-            SCENES.forEach(scene => {
-                const btn = document.createElement('button');
-                btn.className = 'btn-bounce scene-btn';
-                btn.dataset.say = scene.name;
-                btn.innerHTML = `
-                    <div class="scene-preview" style="${scene.bgStyle}"></div>
-                    <div class="scene-label">${scene.name}</div>
-                `;
-                btn.onclick = () => {
-                    pushUndo();
-                    slides[currentSlideIndex].sceneId = scene.id;
-                    refresh();
-                    showToast(`Scene changed to ${scene.name}!`, '🍂');
-                };
-                grid.appendChild(btn);
-            });
-        }
-
-        function renderSoundModalOptions() {
-            const grid = document.getElementById('sound-options-grid');
-            grid.innerHTML = '';
-            SOUNDS.forEach(sound => {
-                const btn = document.createElement('button');
-                btn.id = `sound-opt-${sound.id}`;
-                btn.className = 'btn-bounce sound-opt-btn';
-                btn.dataset.say = sound.name;
-                btn.innerHTML = `
-                    <span style="font-size: 1.75rem;">${sound.icon}</span>
-                    <span style="font-size: 0.85rem; font-weight: 800; color: #1E1B4B;">${sound.name}</span>
-                `;
-                btn.onclick = () => {
-                    playSoundEffect(sound.id);
-                    selectSlideSound(sound.id);
-                };
-                grid.appendChild(btn);
-            });
-        }
-
-        // --- 9. ADDING & CHANGING ITEMS ON STAGE ---
-        function addStickerToSlide(sticker) {
-            pushUndo();
-            const slide = slides[currentSlideIndex];
-            const extra = sticker.isPilgrim ? { skin: defaultPilgrimSkin } : {};
-            const newItem = stickerItem(sticker.id, 50 + (Math.random() * 14 - 7), 50 + (Math.random() * 14 - 7), extra);
-            slide.items.push(newItem);
-            selectedItemId = newItem.id;
-            playSoundEffect('pop');
-            refresh();
-        }
-
-        function addTextToSlide() {
-            const input = document.getElementById('text-input');
-            const rawText = input.value.trim();
-            if (!rawText) {
-                showToast('Type some words first!', '✏️');
-                input.focus();
-                return;
-            }
-            pushUndo();
-            const newItem = textItem(rawText, currentTextStyle, 50, 25);
-            slides[currentSlideIndex].items.push(newItem);
-            selectedItemId = newItem.id;
-            input.value = '';
-            playSoundEffect('pop');
-            refresh();
-        }
-
-        function getSelectedItem() {
-            return slides[currentSlideIndex].items.find(i => i.id === selectedItemId) || null;
-        }
-
-        function needSelection() {
-            const item = getSelectedItem();
-            if (!item) showToast('Tap an item on the stage first!', '👆');
-            return item;
-        }
-
-        function resizeSelected(delta) {
-            const item = needSelection();
-            if (!item) return;
-            pushUndo();
-            item.scale = Math.max(0.4, Math.min(2.6, +(item.scale + delta).toFixed(2)));
-            refresh();
-        }
-
-        function rotateSelected(deg) {
-            const item = needSelection();
-            if (!item) return;
-            pushUndo();
-            item.rot = (item.rot + deg) % 360;
-            refresh();
-        }
-
-        function flipSelected() {
-            const item = needSelection();
-            if (!item) return;
-            if (item.type === 'text' && item.style === 'banner') {
-                showToast('Title banners look the same both ways. Try Turn!', '↔️');
-                return;
-            }
-            pushUndo();
-            item.flipX = item.flipX * -1;
-            refresh();
-            if (item.type === 'text') showToast('The speech bubble now points the other way!', '💬');
-        }
-
-        function layerSelected(where) {
-            const item = needSelection();
-            if (!item) return;
-            const items = slides[currentSlideIndex].items;
-            const idx = items.indexOf(item);
-            if ((where === 'front' && idx === items.length - 1) || (where === 'back' && idx === 0)) {
-                showToast(where === 'front' ? 'It is already in front!' : 'It is already in the back!', '👍');
-                return;
-            }
-            pushUndo();
-            items.splice(idx, 1);
-            if (where === 'front') items.push(item); else items.unshift(item);
-            refresh();
-        }
-
-        function deleteSelected() {
-            const item = needSelection();
-            if (!item) return;
-            pushUndo();
-            const slide = slides[currentSlideIndex];
-            slide.items = slide.items.filter(i => i.id !== selectedItemId);
-            selectedItemId = null;
-            refresh();
-            showToast('Item removed! Tap Undo to bring it back.', '🗑️');
-        }
-
-        function nudgeSelected(dx, dy, isRepeat) {
-            const item = getSelectedItem();
-            if (!item) return;
-            if (!isRepeat) pushUndo();
-            item.x = Math.max(4, Math.min(96, item.x + dx));
-            item.y = Math.max(6, Math.min(94, item.y + dy));
-            refresh();
-        }
-
-        // --- 10. RENDERING STAGE, ONION SKIN & FILMSTRIP ---
-        function itemLabel(item) {
-            return item.type === 'sticker' ? STICKER_BY_ID[item.stickerId].name : `"${item.text}"`;
-        }
-
-        function updateSelectedLabel() {
-            const selectedItem = getSelectedItem();
-            document.getElementById('selected-label').textContent = selectedItem ? itemLabel(selectedItem) : 'Tap an item on stage';
-            updateSelectedPilgrimSkinUI();
-        }
-
-        function selectItem(id) {
-            selectedItemId = id;
-            document.querySelectorAll('#stage-items .stage-item').forEach(el => {
-                el.classList.toggle('selected', el.dataset.id === id);
-            });
-            updateSelectedLabel();
-        }
-
-        function renderCurrentSlide() {
-            const slide = slides[currentSlideIndex];
-            const scene = SCENES.find(s => s.id === slide.sceneId) || SCENES[0];
-
-            document.getElementById('slide-counter').textContent = `${currentSlideIndex + 1} of ${slides.length}`;
-            const soundBadge = document.getElementById('current-sound-badge');
-            if (slide.soundId) {
-                const sObj = SOUNDS.find(s => s.id === slide.soundId);
-                soundBadge.textContent = `${sObj.icon} ${sObj.name}`;
-            } else {
-                soundBadge.textContent = 'No sound on this slide';
-            }
-
-            document.getElementById('stage-background').setAttribute('style', scene.bgStyle);
-
-            const onionLayer = document.getElementById('onion-layer');
-            onionLayer.innerHTML = '';
-            if (document.getElementById('toggle-onion').checked && currentSlideIndex > 0) {
-                slides[currentSlideIndex - 1].items.forEach(item => {
-                    const ghostEl = createItemDOM(item, false);
-                    ghostEl.classList.add('onion');
-                    onionLayer.appendChild(ghostEl);
-                });
-            }
-
-            const itemsLayer = document.getElementById('stage-items');
-            itemsLayer.innerHTML = '';
-            document.getElementById('empty-hint').style.display =
-                (slide.items.length === 0 && currentSlideIndex === 0) ? 'flex' : 'none';
-
-            slide.items.forEach(item => {
-                const el = createItemDOM(item, true);
-                if (item.id === selectedItemId) el.classList.add('selected');
-                itemsLayer.appendChild(el);
-            });
-
-            updateSelectedLabel();
-
-            document.getElementById('hold-label').textContent = HOLD_NAMES[slide.hold] || 'Normal';
-            document.getElementById('btn-hold').dataset.say = `Stay on screen: ${HOLD_NAMES[slide.hold] || 'Normal'}`;
-            document.getElementById('btn-move-earlier').disabled = currentSlideIndex === 0;
-            document.getElementById('btn-move-later').disabled = currentSlideIndex === slides.length - 1;
-        }
-
-        function createItemDOM(item, interactive) {
-            const el = document.createElement('div');
-            el.className = interactive ? 'stage-item' : 'stage-item static';
-            el.dataset.id = item.id;
-            el.style.left = `${item.x}%`;
-            el.style.top = `${item.y}%`;
-
-            const base = `translate(-50%, -50%) rotate(${item.rot || 0}deg) scale(${item.scale})`;
-
-            if (item.type === 'sticker') {
-                const sticker = STICKER_BY_ID[item.stickerId];
-                el.style.transform = `${base} scaleX(${item.flipX})`;
-                if (sticker.isPilgrim && typeof sticker.renderSvg === 'function') {
-                    el.innerHTML = `<div class="sticker-svg">${sticker.renderSvg(item.skin || defaultPilgrimSkin)}</div>`;
-                } else if (sticker.svg) {
-                    el.innerHTML = `<div class="sticker-svg">${sticker.svg}</div>`;
-                } else {
-                    el.innerHTML = `<div class="sticker-emoji">${sticker.emoji}</div>`;
-                }
-            } else {
-                el.style.transform = base;
-                el.innerHTML = item.style === 'bubble'
-                    ? `<div class="bubble${item.flipX === -1 ? ' tail-right' : ''}">${escapeHTML(item.text)}</div>`
-                    : `<div class="banner">${escapeHTML(item.text)}</div>`;
-            }
-
-            if (interactive) attachDragHandlers(el, item);
-            return el;
-        }
-
-        function attachDragHandlers(el, item) {
-            const stage = document.getElementById('stage-container');
-
-            el.addEventListener('pointerdown', (e) => {
-                if (e.button > 0) return;
-                e.preventDefault();
-                selectItem(item.id);
-
-                const rect = stage.getBoundingClientRect();
-                const grabX = e.clientX - (rect.left + (item.x / 100) * rect.width);
-                const grabY = e.clientY - (rect.top + (item.y / 100) * rect.height);
-                let moved = false;
-
-                try { el.setPointerCapture(e.pointerId); } catch (err) { /* fine */ }
-
-                const onMove = (ev) => {
-                    if (ev.pointerId !== e.pointerId) return;
-                    if (!moved) {
-                        if (Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY) < 3) return;
-                        pushUndo();
-                        moved = true;
-                    }
-                    let newX = ((ev.clientX - grabX - rect.left) / rect.width) * 100;
-                    let newY = ((ev.clientY - grabY - rect.top) / rect.height) * 100;
-                    newX = Math.max(4, Math.min(96, newX));
-                    newY = Math.max(6, Math.min(94, newY));
-                    item.x = newX;
-                    item.y = newY;
-                    el.style.left = `${newX}%`;
-                    el.style.top = `${newY}%`;
-                };
-
-                const onUp = (ev) => {
-                    if (ev.pointerId !== e.pointerId) return;
-                    el.removeEventListener('pointermove', onMove);
-                    el.removeEventListener('pointerup', onUp);
-                    el.removeEventListener('pointercancel', onUp);
-                    if (moved) {
-                        renderFilmstrip();
-                        saveLocal();
-                    }
-                };
-
-                el.addEventListener('pointermove', onMove);
-                el.addEventListener('pointerup', onUp);
-                el.addEventListener('pointercancel', onUp);
-            });
-        }
-
-        function renderFilmstrip() {
-            const strip = document.getElementById('filmstrip');
-            const keepScroll = strip.scrollLeft;
-            strip.innerHTML = '';
-            let activeCard = null;
-
-            slides.forEach((slide, idx) => {
-                const scene = SCENES.find(s => s.id === slide.sceneId) || SCENES[0];
-                const isActive = idx === currentSlideIndex;
-
-                const card = document.createElement('button');
-                card.setAttribute('style', scene.bgStyle);
-                card.className = `scene-box filmstrip-frame ${isActive ? 'active' : ''}`;
-                card.dataset.say = `Slide ${idx + 1}`;
-                card.setAttribute('aria-label', `Slide ${idx + 1}`);
-                if (isActive) {
-                    card.setAttribute('aria-current', 'true');
-                    activeCard = card;
-                }
-
-                slide.items.forEach(item => card.appendChild(createItemDOM(item, false)));
-
-                const badge = document.createElement('div');
-                badge.className = 'frame-num-badge';
-                badge.textContent = `#${idx + 1}`;
-                card.appendChild(badge);
-
-                const pills = document.createElement('div');
-                pills.className = 'frame-pills';
-                if (slide.hold > 1) {
-                    const holdPill = document.createElement('div');
-                    holdPill.className = 'pill-hold';
-                    holdPill.textContent = `⏱️${slide.hold}x`;
-                    pills.appendChild(holdPill);
-                }
-                if (slide.soundId) {
-                    const soundPill = document.createElement('div');
-                    soundPill.className = 'pill-sound';
-                    soundPill.textContent = '🔊';
-                    pills.appendChild(soundPill);
-                }
-                card.appendChild(pills);
-
-                card.onclick = () => {
-                    currentSlideIndex = idx;
-                    selectedItemId = null;
-                    renderCurrentSlide();
-                    renderFilmstrip();
-                };
-
-                strip.appendChild(card);
-            });
-
-            strip.scrollLeft = keepScroll;
-            if (activeCard) {
-                const left = activeCard.offsetLeft - 12;
-                const right = activeCard.offsetLeft + activeCard.offsetWidth + 12;
-                if (left < strip.scrollLeft) strip.scrollLeft = left;
-                else if (right > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = right - strip.clientWidth;
-            }
-        }
-
-        // --- 11. SLIDE MANAGEMENT ---
-        function duplicateCurrentSlide() {
-            pushUndo();
-            const current = slides[currentSlideIndex];
-            let newSelectedId = null;
-            const clonedItems = current.items.map(item => {
-                const copy = { ...item, id: generateId() };
-                if (item.id === selectedItemId) newSelectedId = copy.id;
-                return copy;
-            });
-
-            slides.splice(currentSlideIndex + 1, 0, {
-                id: generateId(),
-                sceneId: current.sceneId,
-                soundId: null,
-                hold: 1,
-                items: clonedItems
-            });
-            currentSlideIndex++;
-            selectedItemId = newSelectedId;
-            playSoundEffect('crunch');
-            refresh();
-            showToast(`Slide ${currentSlideIndex + 1} created! Move your items!`, '📸');
-        }
-
-        function addBlankSlide() {
-            pushUndo();
-            slides.splice(currentSlideIndex + 1, 0, blankSlide(slides[currentSlideIndex].sceneId));
-            currentSlideIndex++;
-            selectedItemId = null;
-            refresh();
-            showToast(`Added blank Slide ${currentSlideIndex + 1}!`, '📄');
-        }
-
-        function deleteCurrentSlide() {
-            pushUndo();
-            selectedItemId = null;
-            if (slides.length <= 1) {
-                slides[0].items = [];
-                slides[0].soundId = null;
-                slides[0].hold = 1;
-                refresh();
-                showToast('Slide 1 cleared! Tap Undo to bring it back.', '🧹');
-                return;
-            }
-            slides.splice(currentSlideIndex, 1);
-            if (currentSlideIndex >= slides.length) currentSlideIndex = slides.length - 1;
-            refresh();
-            showToast('Slide deleted! Tap Undo to bring it back.', '🗑️');
-        }
-
-        function moveSlide(dir) {
-            const target = currentSlideIndex + dir;
-            if (target < 0 || target >= slides.length) return;
-            pushUndo();
-            const [slide] = slides.splice(currentSlideIndex, 1);
-            slides.splice(target, 0, slide);
-            currentSlideIndex = target;
-            refresh();
-            showToast(`This is now Slide ${target + 1}!`, '🎞️');
-        }
-
-        function cycleHold() {
-            pushUndo();
-            const slide = slides[currentSlideIndex];
-            slide.hold = slide.hold >= 3 ? 1 : slide.hold + 1;
-            refresh();
-            const msg = { 1: 'This slide stays the normal time.', 2: 'This slide stays 2 times longer!', 3: 'This slide stays 3 times longer!' };
-            showToast(msg[slide.hold], '⏱️');
-        }
-
-        function startNewProject() {
-            pushUndo();
-            slides = [blankSlide('meadow')];
-            currentSlideIndex = 0;
-            selectedItemId = null;
-            projectTitle = '';
-            isExample = false;
-            ideaText = '';
-            document.getElementById('project-title').value = '';
-            refresh();
-            showToast('New animation started! Tap Undo to get the old one back.', '🆕');
-        }
-
-        // --- 12. STORY IDEAS & EXAMPLE NOTICE ---
-        function renderIdeaBar() {
-            const bar = document.getElementById('idea-bar');
-            const text = document.getElementById('idea-text');
-            const startOwn = document.getElementById('btn-start-own');
-            if (ideaText) {
-                text.textContent = `💡 Story idea: ${ideaText}`;
-                startOwn.hidden = true;
-                bar.hidden = false;
-            } else if (isExample) {
-                text.textContent = '⭐ This is an example animation. Watch it, change it, or start your own!';
-                startOwn.hidden = false;
-                bar.hidden = false;
-            } else {
-                bar.hidden = true;
-            }
-        }
-
-        function showStoryIdea() {
-            let next = ideaText;
-            while (next === ideaText) {
-                next = STORY_IDEAS[Math.floor(Math.random() * STORY_IDEAS.length)];
-            }
-            ideaText = next;
-            renderIdeaBar();
-            speak(ideaText, false);
-        }
-
-        function dismissIdeaBar() {
-            if (ideaText) {
-                ideaText = '';
-            } else {
-                isExample = false;
-                saveLocal();
-            }
-            renderIdeaBar();
-        }
-
-        // --- 13. MODALS ---
-        function openModal(id) {
-            const m = document.getElementById(id);
-            m.classList.add('open');
-        }
-
-        function closeModal(id) {
-            if (id === 'preview-modal') stopPlaybackLoop();
-            const m = document.getElementById(id);
-            m.classList.remove('open');
-        }
-
-        function anyModalOpen() {
-            return Array.from(document.querySelectorAll('.modal')).some(m => m.classList.contains('open'));
-        }
-
-        function openSoundModal() {
-            document.getElementById('modal-slide-num').textContent = currentSlideIndex + 1;
-            highlightSelectedSoundOption();
-            openModal('sound-modal');
-        }
-
-        function selectSlideSound(soundId) {
-            pushUndo();
-            slides[currentSlideIndex].soundId = soundId;
-            highlightSelectedSoundOption();
-            refresh();
-            if (soundId) {
-                const sObj = SOUNDS.find(s => s.id === soundId);
-                showToast(`Added "${sObj.name}" to Slide ${currentSlideIndex + 1}!`, '🔊');
-            } else {
-                showToast(`Removed sound from Slide ${currentSlideIndex + 1}`, '🔇');
-            }
-        }
-
-        function highlightSelectedSoundOption() {
-            const activeSoundId = slides[currentSlideIndex].soundId;
-            SOUNDS.forEach(s => {
-                const btn = document.getElementById(`sound-opt-${s.id}`);
-                if (!btn) return;
-                btn.classList.toggle('selected', s.id === activeSoundId);
-            });
-        }
-
-        function openSaveModal() {
-            document.getElementById('project-title').value = projectTitle;
-            document.getElementById('code-out').value = encodeProject();
-            document.getElementById('code-in').value = '';
-            updateAutosaveNote();
-            openModal('save-modal');
-        }
-
-        function copyProjectCode() {
-            const box = document.getElementById('code-out');
-            box.value = encodeProject();
-            box.focus();
-            box.select();
-            box.setSelectionRange(0, box.value.length);
-            let copied = false;
-            try {
-                copied = document.execCommand('copy');
-            } catch (err) {
-                copied = false;
-            }
-            if (copied) {
-                showToast('Project code copied! Paste it where your teacher says.', '📋');
-            } else {
-                showToast('Now press Ctrl and C together to copy your code.', '📋');
-            }
-        }
-
-        function openProjectCode() {
-            const input = document.getElementById('code-in');
-            if (!input.value.trim()) {
-                showToast('Paste a project code in the box first!', '📂');
-                input.focus();
-                return;
-            }
-            let data;
-            try {
-                data = decodeProject(input.value);
-            } catch (err) {
-                showToast('That code did not work. Copy the whole code and try again.', '🤔');
-                return;
-            }
-            pushUndo();
-            slides = data.slides;
-            projectTitle = data.title;
-            isExample = false;
-            ideaText = '';
-            currentSlideIndex = 0;
-            selectedItemId = null;
-            closeModal('save-modal');
-            refresh();
-            showToast('Project opened! Tap Undo to go back to your old one.', '🎉');
-        }
-
-        // --- 14. STOP MOTION ANIMATION PREVIEW ---
-        function openAnimationPreview(startIdx) {
-            document.getElementById('preview-title').textContent = projectTitle || 'Thanksgiving Animation Preview';
-            openModal('preview-modal');
-            previewFrameIndex = Math.max(0, Math.min(slides.length - 1, startIdx || 0));
-            isPlayingAnimation = true;
-            updatePlayPauseButton();
-            renderPreviewFrame(previewFrameIndex);
-            scheduleNextFrame();
-        }
-
-        function scheduleNextFrame() {
-            stopPlaybackLoop();
-            if (!isPlayingAnimation) return;
-            const hold = slides[previewFrameIndex].hold || 1;
-            playbackTimer = setTimeout(() => {
-                previewFrameIndex = (previewFrameIndex + 1) % slides.length;
-                renderPreviewFrame(previewFrameIndex);
-                scheduleNextFrame();
-            }, playbackSpeedMs * hold);
-        }
-
-        function stopPlaybackLoop() {
-            if (playbackTimer) {
-                clearTimeout(playbackTimer);
-                playbackTimer = null;
-            }
-        }
-
-        function renderPreviewFrame(idx) {
-            const slide = slides[idx];
-            const scene = SCENES.find(s => s.id === slide.sceneId) || SCENES[0];
-
-            document.getElementById('preview-frame-indicator').textContent = `${idx + 1} / ${slides.length}`;
-            document.getElementById('preview-screen-bg').setAttribute('style', scene.bgStyle);
-
-            const itemsContainer = document.getElementById('preview-screen-items');
-            itemsContainer.innerHTML = '';
-            slide.items.forEach(item => itemsContainer.appendChild(createItemDOM(item, false)));
-
-            const soundBadge = document.getElementById('preview-sound-indicator');
-            if (slide.soundId) {
-                const sObj = SOUNDS.find(s => s.id === slide.soundId);
-                document.getElementById('preview-sound-name').textContent = sObj.name;
-                soundBadge.classList.add('visible', 'sound-playing');
-                playSoundEffect(slide.soundId);
-            } else {
-                soundBadge.classList.remove('visible', 'sound-playing');
-            }
-        }
-
-        function togglePreviewPlayPause() {
-            isPlayingAnimation = !isPlayingAnimation;
-            updatePlayPauseButton();
-            scheduleNextFrame();
-        }
-
-        function updatePlayPauseButton() {
-            document.getElementById('play-pause-icon').textContent = isPlayingAnimation ? '⏸️' : '▶️';
-            document.getElementById('play-pause-text').textContent = isPlayingAnimation ? 'Pause' : 'Play';
-        }
-
-        function setPlaybackSpeed(ms) {
-            playbackSpeedMs = ms;
-            document.querySelectorAll('.speed-btn').forEach(btn => {
-                const on = Number(btn.dataset.ms) === ms;
-                btn.classList.toggle('active', on);
-            });
-            scheduleNextFrame();
-        }
-
-        // --- 15. UI HELPERS & EVENT LISTENERS ---
-        function switchTab(tabName) {
-            ['stickers', 'scenes', 'text'].forEach(t => {
-                const btn = document.getElementById(`tab-${t}`);
-                const panel = document.getElementById(`panel-${t}`);
-                if (t === tabName) {
-                    btn.classList.add('active');
-                    panel.classList.remove('hidden');
-                } else {
-                    btn.classList.remove('active');
-                    panel.classList.add('hidden');
-                }
-            });
-        }
-
-        function setQuickText(txt) {
-            document.getElementById('text-input').value = txt;
-        }
-
-        function setTextStyle(style) {
-            currentTextStyle = style;
-            document.getElementById('style-bubble').classList.toggle('active', style === 'bubble');
-            document.getElementById('style-banner').classList.toggle('active', style === 'banner');
-        }
-
-        let toastTimeout = null;
-        function showToast(message, icon = '✨') {
-            const box = document.getElementById('toast-box');
-            document.getElementById('toast-msg').textContent = message;
-            document.getElementById('toast-icon').textContent = icon;
-            box.classList.add('show');
-            if (toastTimeout) clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => box.classList.remove('show'), 3000);
-            speak(message, false);
-        }
-
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-            }[tag]));
-        }
-
-        function setupEventListeners() {
-            const on = (id, handler) => document.getElementById(id).addEventListener('click', handler);
-
-            document.getElementById('stage-container').addEventListener('pointerdown', (e) => {
-                if (!e.target.closest('.stage-item')) selectItem(null);
-            });
-
-            document.getElementById('toggle-onion').addEventListener('change', renderCurrentSlide);
-
-            on('btn-add-text', addTextToSlide);
-            document.getElementById('text-input').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') addTextToSlide();
-            });
-
-            on('btn-undo', undo);
-            on('btn-idea', showStoryIdea);
-            on('btn-idea-close', dismissIdeaBar);
-            on('btn-start-own', startNewProject);
-
-            on('btn-duplicate-slide', duplicateCurrentSlide);
-            on('btn-blank-slide', addBlankSlide);
-            on('btn-delete-slide', deleteCurrentSlide);
-            on('btn-move-earlier', () => moveSlide(-1));
-            on('btn-move-later', () => moveSlide(1));
-            on('btn-hold', cycleHold);
-            on('btn-play-here', () => openAnimationPreview(currentSlideIndex));
-
-            on('btn-open-sound', openSoundModal);
-
-            on('btn-create-animation', () => openAnimationPreview(0));
-            on('btn-close-preview', () => closeModal('preview-modal'));
-            on('btn-preview-play-pause', togglePreviewPlayPause);
-            on('btn-preview-replay', () => openAnimationPreview(0));
-
-            on('btn-help', () => openModal('help-modal'));
-            on('btn-read', () => {
-                setReadAloud(!readAloud);
-                speak(readAloud ? 'Read to me is on. Tap any button to hear its name.' : '', true);
-            });
-
-            on('btn-save', openSaveModal);
-            on('btn-copy-code', copyProjectCode);
-            on('btn-open-code', openProjectCode);
-            on('btn-new-project', () => { closeModal('save-modal'); startNewProject(); });
-            document.getElementById('project-title').addEventListener('input', (e) => {
-                projectTitle = e.target.value.trim().slice(0, 30);
-                saveLocal();
-                document.getElementById('code-out').value = encodeProject();
-            });
-
-            document.querySelectorAll('.modal').forEach(m => {
-                m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); });
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!readAloud) return;
-                const b = e.target.closest('button');
-                if (!b || b.id === 'btn-read') return;
-                speak(b.dataset.say || b.getAttribute('aria-label') || b.textContent, true);
-            }, true);
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    document.querySelectorAll('.modal').forEach(m => closeModal(m.id));
-                    return;
-                }
-                const tag = e.target.tagName;
-                if (tag === 'INPUT' || tag === 'TEXTAREA' || anyModalOpen()) return;
-
-                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-                    e.preventDefault();
-                    undo();
-                } else if ((e.key === 'Delete' || e.key === 'Backspace') && getSelectedItem()) {
-                    e.preventDefault();
-                    deleteSelected();
-                } else if (e.key.startsWith('Arrow') && getSelectedItem()) {
-                    e.preventDefault();
-                    const step = 1.5;
-                    const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step * 1.6], ArrowDown: [0, step * 1.6] }[e.key];
-                    nudgeSelected(d[0], d[1], e.repeat);
-                }
-            });
-        }
-
-        // --- 16. START ---
-        function init() {
-            if (!loadLocal()) {
-                slides = buildExampleAnimation();
-                isExample = true;
-            }
-            if (!canSpeak) {
-                document.getElementById('btn-read').hidden = true;
-            } else {
-                let saved = '0';
-                try { saved = localStorage.getItem(READ_KEY) || '0'; } catch (err) { /* fine */ }
-                setReadAloud(saved === '1');
-            }
-            renderToolboxSkinPicker();
-            renderStickerToolbox();
-            renderSceneToolbox();
-            renderSoundModalOptions();
-            setupEventListeners();
-            renderCurrentSlide();
-            renderFilmstrip();
-            renderIdeaBar();
-            updateAutosaveNote();
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
+        })), () => glow(false));
+    ask();
+}
+
+// ---------- dialogs, toast, confetti ----------
+let modalClose = null;
+function openModal(title, text, buttons, onClose) {
+    $('modal-title').textContent = title; $('modal-text').textContent = text;
+    const box = $('modal-choices'); box.innerHTML = '';
+    if (onClose) modalClose = onClose;
+    buttons.forEach(b => {
+        const el = document.createElement('button');
+        el.className = 'btn ' + (b.cls || ''); el.textContent = b.label;
+        el.addEventListener('click', () => { if (!b.keep) closeModal(); if (b.on) b.on(); });
+        box.appendChild(el);
+    });
+    $('modal').hidden = false;
+    box.firstChild.focus();
+}
+function closeModal() { $('modal').hidden = true; if (modalClose) { const f = modalClose; modalClose = null; f(); } }
+let toastTimer = null;
+function toast(msg, ms = 2400) {
+    const t = $('toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, ms);
+}
+function confetti() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const c = $('confetti'), w = c.width = c.clientWidth, h = c.height = c.clientHeight, ctx = c.getContext('2d');
+    const colors = ['#F97316', '#EAB308', '#DC2626', '#0D9488', '#7C2D12'];
+    const bits = Array.from({ length: 110 }, () => ({
+        x: w / 2, y: h * 0.6, vx: (Math.random() - 0.5) * 16, vy: -Math.random() * 15 - 4,
+        r: Math.random() * 6 + 4, a: Math.random() * 6, c: colors[Math.floor(Math.random() * colors.length)], tri: Math.random() < 0.5
+    }));
+    let frame = 0;
+    (function step() {
+        ctx.clearRect(0, 0, w, h);
+        bits.forEach(b => {
+            b.x += b.vx; b.y += b.vy; b.vy += 0.45; b.vx *= 0.99; b.a += 0.2;
+            ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.a); ctx.fillStyle = b.c; ctx.globalAlpha = Math.max(0, 1 - frame / 110);
+            if (b.tri) { ctx.beginPath(); ctx.moveTo(0, -b.r); ctx.lineTo(b.r, b.r); ctx.lineTo(-b.r, b.r); ctx.fill(); } else ctx.fillRect(-b.r / 2, -b.r / 2, b.r, b.r);
+            ctx.restore();
+        });
+        if (++frame < 110) requestAnimationFrame(step); else ctx.clearRect(0, 0, w, h);
+    })();
+}
+
+// ---------- save a picture ----------
+const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+async function savePicture() {
+    deselect();
+    const m = M(), b = board();
+    if (!b.length) { toast('Add some shapes first, then save!'); return; }
+    let x0 = 0, y0 = 0, x1 = m.W, y1 = m.H;
+    b.forEach(p => {
+        const part = m.byId[p.part], r = Math.max(part.w, part.h) * p.s / 2 + 4;
+        x0 = Math.min(x0, p.x - r); y0 = Math.min(y0, p.y - r); x1 = Math.max(x1, p.x + r); y1 = Math.max(y1, p.y + r);
+    });
+    x0 -= 16; y0 -= 16; x1 += 16; y1 += 46;
+    const w = x1 - x0, h = y1 - y0, name = S.name.trim();
+    const caption = name ? `${m.label} by ${name}` : `My Shape ${m.label}`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="${x0} ${y0} ${w} ${h}">` +
+        `<defs><radialGradient id="g" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#FFFBEB"/><stop offset=".65" stop-color="#FDE68A"/><stop offset="1" stop-color="#FCD34D"/></radialGradient></defs>` +
+        `<rect x="${x0}" y="${y0}" width="${w}" height="${h}" fill="url(#g)"/>${boardSVG(S.mode, b)}` +
+        `<text x="${x0 + w / 2}" y="${y1 - 14}" text-anchor="middle" font-family="Trebuchet MS, Arial, sans-serif" font-weight="bold" font-size="18" fill="#451A03">${esc(caption)}</text></svg>`;
+    try {
+        const img = new Image();
+        await new Promise((ok, bad) => { img.onload = ok; img.onerror = bad; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); });
+        const k = 3, cv = document.createElement('canvas');
+        cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        const blob = await new Promise(ok => cv.toBlob(ok, 'image/png'));
+        const safe = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const filename = `${safe ? safe + '-' : 'my-'}shape-${S.mode}.png`;
+        const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null;
+        if (dl) {
+            await dl.save({ filename, data: blob });
         } else {
-            init();
+            const a = document.createElement('a');
+            a.download = filename; a.href = URL.createObjectURL(blob);
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 4000);
         }
-    </script>
+        SFX.fanfare(); toast('✅ Picture saved!');
+    } catch (err) {
+        if (err && err.code === 'declined') toast('Okay, not saved.');
+        else toast('Saving is not available here. Ask your teacher for help.', 4000);
+    }
+}
+
+// ---------- modes, levels, the Copy This card ----------
+function buildTray() {
+    const m = M(), box = $('parts');
+    box.innerHTML = '';
+    $('tray-title').textContent = `${m.emoji} ${m.label} shapes`;
+    m.parts.forEach(part => {
+        const v = Math.max(part.w, part.h, 44) + 8;
+        const card = document.createElement('button');
+        card.className = 'part'; card.id = 'part-' + part.id;
+        card.innerHTML = `<svg viewBox="${-v / 2} ${-v / 2} ${v} ${v}">${part.svg}</svg><span class="nm">${part.name}</span><span class="left"></span>`;
+        card.addEventListener('click', () => addPart(part));
+        box.appendChild(card);
+    });
+}
+function setMode(mode, quiet) {
+    S.mode = mode; sel = null;
+    document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-pressed', String(t.dataset.mode === mode)));
+    $('target-pic').innerHTML = targetSVG(mode);
+    $('ghost').innerHTML = targetSVG(mode);
+    buildTray(); layout(); renderPieces(); applyLevel(); persist();
+    if (!quiet) SFX.pop();
+}
+function applyLevel() {
+    document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.level === S.level)));
+    $('level-tip').textContent = LEVELS[S.level];
+    $('btn-hint').hidden = S.level !== 'medium';
+    $('btn-peek').hidden = S.level !== 'hard';
+    $('hint-text').textContent = hintsOn ? 'Hide outline' : 'Show outline';
+    $('ghost').classList.toggle('on', S.level === 'easy' || (S.level === 'medium' && hintsOn));
+    clearTimeout(lookTimer); $('look-bar').hidden = true;
+    $('target').classList.remove('gone');
+    if (S.level === 'hard') look(10);
+}
+// Hard level: the picture shows for a few seconds, then hides.
+function look(seconds) {
+    const card = $('target'), bar = $('look-bar'), fill = bar.firstElementChild;
+    clearTimeout(lookTimer);
+    card.classList.remove('gone', 'min'); bar.hidden = false;
+    if (fill.animate) fill.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: seconds * 1000, fill: 'forwards' });
+    lookTimer = setTimeout(() => { card.classList.add('gone'); bar.hidden = true; }, seconds * 1000);
+}
+
+// ---------- wiring ----------
+function init() {
+    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setMode(t.dataset.mode)));
+    document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+        S.level = b.dataset.level; applyLevel(); persist(); SFX.pop();
+        toast(b.textContent + ': ' + LEVELS[S.level]);
+    }));
+    $('btn-hint').addEventListener('click', () => { hintsOn = !hintsOn; applyLevel(); SFX.pop(); });
+    $('btn-peek').addEventListener('click', () => { look(5); SFX.pop(); });
+    $('btn-undo').addEventListener('click', undo);
+    $('btn-done').addEventListener('click', done);
+    $('btn-save').addEventListener('click', savePicture);
+    $('btn-reset').addEventListener('click', () => {
+        if (!board().length) { toast('The board is already empty.'); return; }
+        openModal('Clear the whole board?', 'All your shapes will go back in the tray.', [
+            { label: 'Yes, clear it', cls: 'stop', on: () => { remember(); S.boards[S.mode] = []; sel = null; changed(true); SFX.del(); toast('Board cleared. Tap Undo to bring it back.'); } },
+            { label: 'Keep building', cls: 'go' }
+        ]);
+    });
+    const snd = $('btn-sound'), paintSound = () => { snd.textContent = S.sound ? '🔊' : '🔇'; snd.setAttribute('aria-pressed', String(S.sound)); };
+    snd.addEventListener('click', () => { S.sound = !S.sound; paintSound(); persist(); toast(S.sound ? 'Sound on' : 'Sound off'); SFX.pop(); });
+    paintSound();
+    $('btn-zoom').addEventListener('click', () => { $('target').classList.remove('min'); $('target').classList.toggle('big'); layout(); });
+    $('btn-min').addEventListener('click', () => { $('target').classList.toggle('min'); layout(); });
+    $('tools').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) act(b.dataset.act); });
+    $('tools').addEventListener('pointerdown', e => e.stopPropagation());
+    $('target').addEventListener('pointerdown', e => e.stopPropagation());
+    $('stage').addEventListener('pointerdown', deselect);
+    $('modal').addEventListener('pointerdown', e => { if (e.target === $('modal')) closeModal(); });
+    const nm = $('name-input');
+    nm.value = S.name;
+    nm.addEventListener('input', () => { S.name = nm.value; persist(); });
+
+    const firstGesture = () => { hadGesture = true; };
+    window.addEventListener('pointerdown', firstGesture, true);
+    window.addEventListener('keydown', firstGesture, true);
+    window.addEventListener('keydown', e => {
+        if (!$('modal').hidden) { if (e.key === 'Escape') closeModal(); return; }
+        if (e.target.matches && e.target.matches('input, textarea')) return;
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
+        if (sel == null || e.ctrlKey || e.metaKey || e.altKey) return;
+        const step = e.shiftKey ? 10 : 2;
+        const keys = {
+            ArrowLeft: () => nudge(-step, 0), ArrowRight: () => nudge(step, 0), ArrowUp: () => nudge(0, -step), ArrowDown: () => nudge(0, step),
+            Delete: () => act('del'), Backspace: () => act('del'), Escape: deselect,
+            r: () => act('rotR'), R: () => act('rotL'), f: () => act('flip'), F: () => act('flip'),
+            '+': () => act('bigger'), '=': () => act('bigger'), '-': () => act('smaller'), ']': () => act('front'), '[': () => act('back')
+        };
+        if (keys[e.key]) { e.preventDefault(); keys[e.key](); }
+    });
+    if (window.ResizeObserver) new ResizeObserver(layout).observe($('stage')); else window.addEventListener('resize', layout);
+    setMode(S.mode, true);
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+</script>
 </body>
 </html>
