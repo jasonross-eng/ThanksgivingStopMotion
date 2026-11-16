@@ -1,0 +1,1760 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+    <title>Thanksgiving Stop Motion Studio</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <!-- Tone.js for kid-friendly synthesized sound effects without external URLs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #FFF8EB;
+            background-image: radial-gradient(#FDE68A 2px, transparent 2px);
+            background-size: 32px 32px;
+            color: #451A03;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+        input, textarea {
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        h1, h2, h3, .kid-font {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Big tap targets for small hands */
+        button {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        button:focus-visible, input:focus-visible, textarea:focus-visible {
+            outline: 3px solid #1D4ED8;
+            outline-offset: 2px;
+        }
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        .border-3 { border-width: 3px; }
+
+        /* Custom Scrollbar for Filmstrip & Stickers */
+        ::-webkit-scrollbar { height: 10px; width: 10px; }
+        ::-webkit-scrollbar-track { background: #FEF3C7; border-radius: 999px; }
+        ::-webkit-scrollbar-thumb { background: #F59E0B; border-radius: 999px; border: 2px solid #FEF3C7; }
+        ::-webkit-scrollbar-thumb:hover { background: #D97706; }
+
+        /* Bouncy Kid-Friendly Button Effects */
+        .btn-bounce {
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+        }
+        .btn-bounce:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); }
+        .btn-bounce:active:not(:disabled) { transform: translateY(2px) scale(0.96); }
+        @media (prefers-reduced-motion: reduce) {
+            .btn-bounce, .filmstrip-frame { transition: none; }
+            .sound-playing { animation: none !important; }
+        }
+
+        /* Stage: every size inside is a fraction of the stage width, so the
+           editor, the movie screen and the thumbnails all look the same. */
+        .scene-box {
+            container-type: inline-size;
+        }
+        #stage-container {
+            aspect-ratio: 16 / 9;
+            max-width: 100%;
+            box-shadow: 0 12px 28px -5px rgba(146, 64, 14, 0.25), 0 0 0 6px #F59E0B;
+        }
+
+        .stage-item {
+            position: absolute;
+            font-size: 16px;
+            font-size: 2.2cqw;
+            line-height: 1;
+            cursor: grab;
+            touch-action: none;
+        }
+        .stage-item:active { cursor: grabbing; }
+        .stage-item.static { pointer-events: none; cursor: default; }
+        .stage-item.selected {
+            outline: 3px dashed #EA580C;
+            outline-offset: 6px;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+        .stage-item.onion {
+            opacity: 0.28;
+            filter: grayscale(40%);
+        }
+        .sticker-emoji {
+            font-size: 3.8em;
+            line-height: 1;
+            pointer-events: none;
+            filter: drop-shadow(0 0.04em 0.06em rgba(0, 0, 0, 0.3));
+        }
+        .sticker-svg { pointer-events: none; filter: drop-shadow(0 0.15em 0.2em rgba(0, 0, 0, 0.3)); }
+        .sticker-svg svg { width: 3.8em; height: 3.8em; display: block; }
+        .toolbox-svg svg { width: 40px; height: 40px; display: block; }
+
+        .bubble {
+            position: relative;
+            background: #FFFFFF;
+            color: #451A03;
+            font-weight: 800;
+            line-height: 1.3;
+            padding: 0.45em 0.9em;
+            border-radius: 1.4em;
+            border: 0.16em solid #78350F;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 0.2em 0.4em rgba(0, 0, 0, 0.2);
+        }
+        .bubble::after {
+            content: "";
+            position: absolute;
+            width: 0.7em;
+            height: 0.7em;
+            background: #FFFFFF;
+            border-right: 0.16em solid #78350F;
+            border-bottom: 0.16em solid #78350F;
+            bottom: -0.5em;
+            left: 22%;
+            transform: rotate(45deg);
+        }
+        .bubble.tail-right::after { left: auto; right: 22%; }
+        .banner {
+            background: linear-gradient(90deg, #EA580C, #F59E0B);
+            color: #FFFFFF;
+            font-weight: 800;
+            font-size: 1.2em;
+            line-height: 1.3;
+            padding: 0.4em 1em;
+            border-radius: 0.8em;
+            border: 0.12em solid #FEF08A;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.25);
+        }
+
+        /* Filmstrip */
+        .filmstrip-frame {
+            position: relative;
+            padding: 0;
+            transition: all 0.2s ease;
+        }
+        .filmstrip-frame.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 4px #EA580C, 0 8px 15px rgba(234, 88, 12, 0.3);
+        }
+
+        /* Sound wave pulse animation */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .sound-playing { animation: pulse-ring 1s infinite ease-in-out; }
+    </style>
+
+    <!-- Top Header Bar -->
+    <header class="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white py-3 px-4 md:px-6 shadow-md border-b-4 border-amber-700">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-white text-3xl p-2 rounded-2xl shadow-inner transform -rotate-3">
+                    🦃
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-wide drop-shadow">
+                        Thanksgiving Stop Motion Studio
+                    </h1>
+                    <p class="text-xs sm:text-sm text-amber-100 font-semibold">
+                        Create your own festive holiday movie slide by slide!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Big Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                <button id="btn-help" data-say="How to play" class="btn-bounce bg-amber-100 hover:bg-white text-amber-900 font-bold py-2 px-3 sm:px-4 rounded-2xl shadow border-b-4 border-amber-300 flex items-center gap-1.5 text-sm sm:text-base">
+                    <span>💡</span> <span class="hidden sm:inline">How to Play</span>
+                </button>
+                <button id="btn-read" aria-pressed="false" class="btn-bounce bg-amber-100 hover:bg-white text-amber-900 font-bold py-2 px-3 sm:px-4 rounded-2xl shadow border-b-4 border-amber-300 flex items-center gap-1.5 text-sm sm:text-base">
+                    <span>🗣️</span> <span id="read-label">Read to Me: Off</span>
+                </button>
+                <button id="btn-save" data-say="Save and share" class="btn-bounce bg-sky-100 hover:bg-white text-sky-900 font-bold py-2 px-3 sm:px-4 rounded-2xl shadow border-b-4 border-sky-300 flex items-center gap-1.5 text-sm sm:text-base">
+                    <span>💾</span> <span>Save &amp; Share</span>
+                </button>
+                <button id="btn-create-movie" class="btn-bounce bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold py-2.5 px-4 sm:px-6 rounded-2xl shadow-lg border-b-4 border-emerald-700 flex items-center gap-2 text-base sm:text-lg">
+                    <span class="text-xl">🎬</span>
+                    <span>Create Stop Motion Movie!</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        <!-- Left Toolbox: Festive Stickers, Backgrounds & Text -->
+        <aside class="lg:col-span-4 min-w-0 bg-white rounded-3xl p-4 shadow-lg border-4 border-amber-200 flex flex-col gap-4">
+
+            <!-- Category Tabs -->
+            <div class="grid grid-cols-3 gap-2 bg-amber-100 p-1.5 rounded-2xl">
+                <button onclick="switchTab('stickers')" id="tab-stickers" class="tab-btn bg-amber-500 text-white font-bold py-2 px-2 rounded-xl shadow text-sm sm:text-base flex items-center justify-center gap-1 transition">
+                    <span>🦃</span> Stickers
+                </button>
+                <button onclick="switchTab('scenes')" id="tab-scenes" class="tab-btn text-amber-800 hover:bg-amber-200/60 font-bold py-2 px-2 rounded-xl text-sm sm:text-base flex items-center justify-center gap-1 transition">
+                    <span>🍂</span> Scenes
+                </button>
+                <button onclick="switchTab('text')" id="tab-text" class="tab-btn text-amber-800 hover:bg-amber-200/60 font-bold py-2 px-2 rounded-xl text-sm sm:text-base flex items-center justify-center gap-1 transition">
+                    <span>💬</span> Words
+                </button>
+            </div>
+
+            <!-- Panel 1: Thanksgiving Stickers -->
+            <div id="panel-stickers" class="flex flex-col gap-2">
+                <p class="text-sm font-bold text-amber-800 flex items-center justify-between">
+                    <span>Tap to add to your slide:</span>
+                    <span id="sticker-count" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"></span>
+                </p>
+                <div id="sticker-grid" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-1">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Panel 2: Background Scenes -->
+            <div id="panel-scenes" class="hidden flex-col gap-2">
+                <p class="text-sm font-bold text-amber-800">Choose a background scene:</p>
+                <div id="scene-grid" class="grid grid-cols-2 gap-2.5">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Panel 3: Add Text / Speech Bubble -->
+            <div id="panel-text" class="hidden flex-col gap-3">
+                <label for="text-input" class="text-sm font-bold text-amber-800">Type a title or speech bubble:</label>
+                <input type="text" id="text-input" maxlength="40" placeholder="Gobble, gobble!" class="w-full px-3.5 py-2.5 rounded-2xl border-3 border-amber-300 focus:border-orange-500 focus:outline-none text-base font-bold text-amber-950 bg-amber-50">
+
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setQuickText('Gobble Gobble!')" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-xl">Gobble Gobble!</button>
+                    <button onclick="setQuickText('Happy Thanksgiving!')" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-xl">Happy Thanksgiving!</button>
+                    <button onclick="setQuickText('Yummy Pie!')" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-xl">Yummy Pie!</button>
+                    <button onclick="setQuickText('The End!')" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-xl">The End!</button>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-amber-800">Text Style:</span>
+                    <div class="flex gap-1.5">
+                        <button onclick="setTextStyle('bubble')" id="style-bubble" class="px-3 py-1 rounded-xl text-sm font-bold bg-orange-500 text-white">💬 Speech Bubble</button>
+                        <button onclick="setTextStyle('banner')" id="style-banner" class="px-3 py-1 rounded-xl text-sm font-bold bg-amber-100 text-amber-900">🏷️ Title Banner</button>
+                    </div>
+                </div>
+
+                <button id="btn-add-text" class="btn-bounce w-full bg-orange-500 hover:bg-orange-400 text-white font-extrabold py-2.5 rounded-2xl shadow border-b-4 border-orange-700 flex items-center justify-center gap-2">
+                    <span>➕</span> Add Words to Slide
+                </button>
+            </div>
+
+            <!-- Selected Item Controls -->
+            <div id="item-controls" class="mt-1 pt-3 border-t-2 border-dashed border-amber-200">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-amber-700">Selected Item Tools</span>
+                    <span id="selected-label" class="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full truncate">Tap an item on stage</span>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="resizeSelected(0.15)" data-say="Bigger" class="btn-bounce bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-sky-300">
+                        <span class="text-base">🔍+</span> Bigger
+                    </button>
+                    <button onclick="resizeSelected(-0.15)" data-say="Smaller" class="btn-bounce bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-sky-300">
+                        <span class="text-base">🔍-</span> Smaller
+                    </button>
+                    <button onclick="rotateSelected(-15)" data-say="Turn left" class="btn-bounce bg-teal-100 hover:bg-teal-200 text-teal-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-teal-300">
+                        <span class="text-base">↺</span> Turn Left
+                    </button>
+                    <button onclick="rotateSelected(15)" data-say="Turn right" class="btn-bounce bg-teal-100 hover:bg-teal-200 text-teal-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-teal-300">
+                        <span class="text-base">↻</span> Turn Right
+                    </button>
+                    <button onclick="flipSelected()" data-say="Flip" class="btn-bounce bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-purple-300">
+                        <span class="text-base">↔️</span> Flip
+                    </button>
+                    <button onclick="layerSelected('front')" data-say="Bring to front" class="btn-bounce bg-lime-100 hover:bg-lime-200 text-lime-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-lime-300">
+                        <span class="text-base">⬆️</span> To Front
+                    </button>
+                    <button onclick="layerSelected('back')" data-say="Send to back" class="btn-bounce bg-lime-100 hover:bg-lime-200 text-lime-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-lime-300">
+                        <span class="text-base">⬇️</span> To Back
+                    </button>
+                    <button onclick="deleteSelected()" data-say="Trash" class="btn-bounce bg-rose-100 hover:bg-rose-200 text-rose-900 font-bold py-2 rounded-xl flex flex-col items-center justify-center text-xs border-b-2 border-rose-300">
+                        <span class="text-base">🗑️</span> Trash
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Sound Button Section -->
+            <div class="mt-1 pt-3 border-t-2 border-dashed border-amber-200">
+                <button id="btn-open-sound" data-say="Add sound to slide" class="btn-bounce w-full bg-indigo-500 hover:bg-indigo-400 text-white font-extrabold py-3 px-4 rounded-2xl shadow-md border-b-4 border-indigo-700 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-2xl">🔊</span>
+                        <div class="text-left">
+                            <div class="text-sm sm:text-base leading-tight">Add Sound to Slide</div>
+                            <div id="current-sound-badge" class="text-xs text-indigo-100 font-semibold">No sound on this slide</div>
+                        </div>
+                    </div>
+                    <span class="bg-indigo-700/60 px-2.5 py-1 rounded-xl text-xs font-bold">Pick 🎵</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Center & Right: Movie Stage & Slide Filmstrip -->
+        <section class="lg:col-span-8 min-w-0 flex flex-col gap-4">
+
+            <!-- Stage Top Info -->
+            <div class="bg-white rounded-2xl px-4 py-2.5 shadow border-2 border-amber-200 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="bg-orange-500 text-white font-extrabold px-3 py-1 rounded-xl text-sm sm:text-base shadow-sm">
+                        Slide <span id="slide-counter">1 of 1</span>
+                    </span>
+                    <span class="text-xs sm:text-sm font-bold text-amber-800 hidden md:inline">
+                        Drag items around to make them move!
+                    </span>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button id="btn-undo" disabled data-say="Undo" class="btn-bounce bg-rose-100 hover:bg-rose-200 text-rose-900 font-extrabold px-3 py-1.5 rounded-xl border-b-2 border-rose-300 text-sm flex items-center gap-1.5">
+                        <span>↩️</span> Undo
+                    </button>
+                    <button id="btn-idea" data-say="Story idea" class="btn-bounce bg-yellow-100 hover:bg-yellow-200 text-yellow-900 font-extrabold px-3 py-1.5 rounded-xl border-b-2 border-yellow-300 text-sm flex items-center gap-1.5">
+                        <span>💡</span> Story Idea
+                    </button>
+                    <label class="flex items-center gap-2 cursor-pointer bg-amber-100 hover:bg-amber-200/80 px-3 rounded-xl transition min-h-[44px]">
+                        <input type="checkbox" id="toggle-onion" checked class="w-5 h-5 accent-orange-600 rounded">
+                        <span class="text-xs sm:text-sm font-bold text-amber-900">👻 Ghost Helper</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Story idea / example notice -->
+            <div id="idea-bar" hidden class="bg-yellow-50 border-2 border-yellow-300 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+                <p id="idea-text" class="text-sm sm:text-base font-bold text-yellow-900 min-w-0"></p>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button id="btn-start-own" hidden class="btn-bounce bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold px-3 py-1.5 rounded-xl border-b-2 border-emerald-700 text-sm">🆕 Start My Own Movie</button>
+                    <button id="btn-idea-close" class="bg-yellow-200 hover:bg-yellow-300 text-yellow-900 font-extrabold px-3 py-1.5 rounded-xl text-sm">Got it!</button>
+                </div>
+            </div>
+
+            <!-- Interactive Movie Stage -->
+            <div id="stage-container" class="scene-box relative w-full rounded-3xl overflow-hidden bg-amber-100 select-none">
+                <div id="stage-background" class="absolute inset-0 w-full h-full"></div>
+                <div id="onion-layer" class="absolute inset-0 w-full h-full pointer-events-none"></div>
+                <div id="stage-items" class="absolute inset-0 w-full h-full"></div>
+
+                <!-- Empty Stage Hint -->
+                <div id="empty-hint" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center p-4">
+                    <div class="bg-white/85 backdrop-blur-sm px-6 py-4 rounded-3xl shadow-md border-2 border-amber-300">
+                        <p class="text-lg sm:text-xl font-extrabold text-amber-900">👈 Tap a Turkey, Pumpkin, or Pie to start!</p>
+                        <p class="text-xs sm:text-sm font-bold text-amber-700 mt-1">Then click "Next Slide" below to move it!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide Controls & Filmstrip Timeline -->
+            <div class="bg-white rounded-3xl p-4 shadow-lg border-4 border-amber-200 flex flex-col gap-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 class="text-base sm:text-lg font-extrabold text-amber-900 flex items-center gap-2">
+                        <span>🎞️</span> Your Movie Slides
+                    </h2>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button id="btn-duplicate-slide" data-say="Next slide. Copy and move." class="btn-bounce bg-amber-500 hover:bg-amber-400 text-white font-extrabold py-2 px-3.5 sm:px-4 rounded-2xl shadow border-b-4 border-amber-700 flex items-center gap-1.5 text-sm sm:text-base">
+                            <span>📸</span> Next Slide (Copy &amp; Move)
+                        </button>
+                        <button id="btn-blank-slide" class="btn-bounce bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-2 px-3 rounded-2xl border-b-4 border-amber-300 flex items-center gap-1 text-xs sm:text-sm">
+                            <span>📄</span> Blank Slide
+                        </button>
+                        <button id="btn-delete-slide" class="btn-bounce bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold py-2 px-3 rounded-2xl border-b-4 border-rose-300 flex items-center gap-1 text-xs sm:text-sm">
+                            <span>❌</span> Delete Slide
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filmstrip Container -->
+                <div id="filmstrip" class="relative flex items-center gap-3 overflow-x-auto py-2 px-1 min-h-[104px]">
+                    <!-- Thumbnails rendered by JS -->
+                </div>
+
+                <!-- Tools for the slide you are on -->
+                <div class="flex flex-wrap items-center gap-2 pt-2 border-t-2 border-dashed border-amber-200">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-amber-700">This Slide:</span>
+                    <button id="btn-move-earlier" data-say="Move slide earlier" class="btn-bounce bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-2 px-3 rounded-2xl border-b-4 border-amber-300 text-xs sm:text-sm">
+                        ◀ Move Earlier
+                    </button>
+                    <button id="btn-move-later" data-say="Move slide later" class="btn-bounce bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-2 px-3 rounded-2xl border-b-4 border-amber-300 text-xs sm:text-sm">
+                        Move Later ▶
+                    </button>
+                    <button id="btn-hold" class="btn-bounce bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold py-2 px-3 rounded-2xl border-b-4 border-sky-300 text-xs sm:text-sm">
+                        ⏱️ Stay on Screen: <span id="hold-label">Normal</span>
+                    </button>
+                    <button id="btn-play-here" data-say="Play from here" class="btn-bounce bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold py-2 px-3 rounded-2xl border-b-4 border-emerald-300 text-xs sm:text-sm">
+                        ▶️ Play From Here
+                    </button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Sound Picker Modal -->
+    <div id="sound-modal" class="modal fixed inset-0 bg-amber-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border-4 border-indigo-400">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl sm:text-2xl font-extrabold text-indigo-950 flex items-center gap-2">
+                    <span>🎵</span> Pick a Sound for Slide <span id="modal-slide-num">1</span>
+                </h3>
+                <button onclick="closeModal('sound-modal')" aria-label="Close" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-full flex items-center justify-center">✕</button>
+            </div>
+
+            <p class="text-sm font-bold text-indigo-800 mb-3">Tap a sound to hear it and attach it to this slide!</p>
+
+            <div id="sound-options-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-5">
+                <!-- Sound buttons populated by JS -->
+            </div>
+
+            <div class="flex items-center justify-between gap-3 pt-3 border-t-2 border-indigo-100">
+                <button onclick="selectSlideSound(null)" class="btn-bounce bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2.5 px-4 rounded-2xl text-sm">
+                    🔇 No Sound
+                </button>
+                <button onclick="closeModal('sound-modal')" data-say="Done" class="btn-bounce bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-2.5 px-6 rounded-2xl shadow border-b-4 border-indigo-800 text-sm sm:text-base">
+                    Done! 👍
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movie Theater Playback Modal -->
+    <div id="movie-modal" class="modal fixed inset-0 bg-amber-950/85 backdrop-blur-md z-50 hidden items-center justify-center p-3 sm:p-6 overflow-y-auto">
+        <div class="bg-gradient-to-b from-amber-900 to-stone-900 rounded-3xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl border-4 border-amber-400 text-white flex flex-col gap-4">
+
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="text-2xl sm:text-3xl">🍿</span>
+                    <h3 id="theater-title" class="text-xl sm:text-2xl font-extrabold text-amber-300 truncate">Thanksgiving Movie Theater</h3>
+                </div>
+                <button id="btn-close-movie" data-say="Back to editor" class="btn-bounce bg-rose-600 hover:bg-rose-500 text-white font-extrabold py-1.5 px-4 rounded-2xl border-b-4 border-rose-800 text-sm sm:text-base">
+                    ✏️ Back to Editor
+                </button>
+            </div>
+
+            <!-- Movie Screen -->
+            <div class="scene-box relative w-full aspect-video rounded-2xl overflow-hidden bg-black border-4 border-amber-500/80 shadow-inner">
+                <div id="movie-screen-bg" class="absolute inset-0 w-full h-full"></div>
+                <div id="movie-screen-items" class="absolute inset-0 w-full h-full"></div>
+
+                <div class="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-amber-200 px-3 py-1 rounded-full text-xs font-bold">
+                    Slide <span id="movie-frame-indicator">1 / 1</span>
+                </div>
+
+                <div id="movie-sound-indicator" class="hidden absolute top-3 right-3 bg-indigo-600/90 text-white px-3 py-1 rounded-full text-xs font-bold items-center gap-1.5 shadow">
+                    <span>🔊</span> <span id="movie-sound-name">Gobble!</span>
+                </div>
+            </div>
+
+            <!-- Theater Controls -->
+            <div class="bg-stone-800/90 rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 border border-amber-500/30">
+                <div class="flex items-center gap-2.5">
+                    <button id="btn-movie-play-pause" class="btn-bounce bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold py-2 px-5 rounded-2xl shadow border-b-4 border-emerald-700 flex items-center gap-2 text-base">
+                        <span id="play-pause-icon">⏸️</span> <span id="play-pause-text">Pause</span>
+                    </button>
+                    <button id="btn-movie-replay" data-say="Replay" class="btn-bounce bg-amber-500 hover:bg-amber-400 text-amber-950 font-extrabold py-2 px-4 rounded-2xl shadow border-b-4 border-amber-700 flex items-center gap-1.5 text-sm sm:text-base">
+                        <span>🔄</span> Replay
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 bg-stone-900 px-3 py-1.5 rounded-2xl">
+                    <span class="text-xs sm:text-sm font-bold text-amber-200">Movie Speed:</span>
+                    <button onclick="setMovieSpeed(1100)" data-ms="1100" data-say="Slow" class="speed-btn px-3 py-1 rounded-xl text-sm font-bold bg-stone-700 text-gray-200">🐢 Slow</button>
+                    <button onclick="setMovieSpeed(650)" data-ms="650" data-say="Normal" class="speed-btn px-3 py-1 rounded-xl text-sm font-bold bg-amber-500 text-amber-950">🦃 Normal</button>
+                    <button onclick="setMovieSpeed(350)" data-ms="350" data-say="Fast" class="speed-btn px-3 py-1 rounded-xl text-sm font-bold bg-stone-700 text-gray-200">🐇 Fast</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save & Share Modal -->
+    <div id="save-modal" class="modal fixed inset-0 bg-amber-950/60 backdrop-blur-sm z-50 hidden items-start sm:items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border-4 border-sky-400 flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl sm:text-2xl font-extrabold text-sky-950 flex items-center gap-2">
+                    <span>💾</span> Save &amp; Share
+                </h3>
+                <button onclick="closeModal('save-modal')" aria-label="Close" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-full flex items-center justify-center">✕</button>
+            </div>
+
+            <p id="autosave-note" class="text-sm font-bold text-emerald-800 bg-emerald-50 rounded-2xl px-3 py-2">
+                ✅ Your movie saves by itself on this computer.
+            </p>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="movie-title" class="text-sm font-extrabold text-sky-900">Movie name:</label>
+                <input type="text" id="movie-title" maxlength="30" placeholder="The Hungry Turkey" class="w-full px-3.5 py-2.5 rounded-2xl border-3 border-sky-300 focus:border-sky-500 focus:outline-none text-base font-bold text-sky-950 bg-sky-50">
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="code-out" class="text-sm font-extrabold text-sky-900">Your movie code (copy it to share or turn in):</label>
+                <textarea id="code-out" readonly rows="3" class="w-full px-3 py-2 rounded-2xl border-3 border-sky-300 text-xs font-mono text-sky-950 bg-sky-50 break-all"></textarea>
+                <button id="btn-copy-code" class="btn-bounce bg-sky-500 hover:bg-sky-400 text-white font-extrabold py-2.5 rounded-2xl shadow border-b-4 border-sky-700">
+                    📋 Copy My Movie Code
+                </button>
+            </div>
+
+            <div class="flex flex-col gap-1.5 pt-3 border-t-2 border-sky-100">
+                <label for="code-in" class="text-sm font-extrabold text-sky-900">Have a movie code? Paste it here:</label>
+                <textarea id="code-in" rows="3" placeholder="TSM1..." class="w-full px-3 py-2 rounded-2xl border-3 border-sky-300 focus:border-sky-500 focus:outline-none text-xs font-mono text-sky-950 bg-white break-all"></textarea>
+                <button id="btn-open-code" class="btn-bounce bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold py-2.5 rounded-2xl shadow border-b-4 border-emerald-700">
+                    📂 Open This Movie
+                </button>
+            </div>
+
+            <div class="pt-3 border-t-2 border-sky-100">
+                <button id="btn-new-movie" class="btn-bounce w-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-extrabold py-2.5 rounded-2xl border-b-4 border-amber-300">
+                    🆕 Start a New Movie
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kid-Friendly How-To Modal -->
+    <div id="help-modal" class="modal fixed inset-0 bg-amber-950/60 backdrop-blur-sm z-50 hidden items-start sm:items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border-4 border-amber-400">
+            <h3 class="text-2xl font-extrabold text-amber-900 mb-3 flex items-center gap-2">
+                <span>🎬</span> How to Make a Stop Motion Movie!
+            </h3>
+            <ol class="space-y-3 text-amber-950 font-bold text-sm sm:text-base mb-5">
+                <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
+                    <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">1</span>
+                    <span>Pick festive stickers (like turkeys &amp; pies) and add words to your first slide.</span>
+                </li>
+                <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
+                    <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">2</span>
+                    <span>Click <strong>"📸 Next Slide (Copy &amp; Move)"</strong>. It copies your picture!</span>
+                </li>
+                <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
+                    <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">3</span>
+                    <span>Move or turn your turkey a little bit on the new slide. Follow the <strong>👻 Ghost Helper</strong>!</span>
+                </li>
+                <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
+                    <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">4</span>
+                    <span>Tap <strong>"🔊 Add Sound"</strong> for gobbles and music, then hit <strong>"🎬 Create Stop Motion Movie!"</strong></span>
+                </li>
+                <li class="flex items-start gap-2.5 bg-amber-50 p-2.5 rounded-2xl">
+                    <span class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-sm">5</span>
+                    <span>Made a mistake? Tap <strong>"↩️ Undo"</strong>. Finished? Tap <strong>"💾 Save &amp; Share"</strong> to get your movie code.</span>
+                </li>
+            </ol>
+            <button onclick="closeModal('help-modal')" data-say="Let's make a movie" class="btn-bounce w-full bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold py-3 rounded-2xl shadow border-b-4 border-emerald-700 text-lg">
+                Let's Make a Movie! 🦃
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification Box (Never uses alert()) -->
+    <div id="toast-box" role="status" class="fixed bottom-5 left-1/2 -translate-x-1/2 max-w-[calc(100%-32px)] bg-amber-900 text-white px-5 py-2.5 rounded-full shadow-xl font-bold text-sm opacity-0 pointer-events-none transition-opacity duration-300 z-[60] flex items-center gap-2">
+        <span id="toast-icon">✨</span>
+        <span id="toast-msg">Message</span>
+    </div>
+
+    <script>
+        /**
+         * THANKSGIVING STOP MOTION STUDIO
+         * Designed for Grades 1-4: Simple, tactile, colorful, and self-contained.
+         */
+
+        // --- 1. FESTIVE ASSETS ---
+        const STICKERS = [
+            { id: 'turkey', name: 'Tom Turkey', emoji: '🦃' },
+            { id: 'pie', name: 'Pumpkin Pie', emoji: '🥧' },
+            { id: 'pumpkin', name: 'Pumpkin', emoji: '🎃' },
+            { id: 'corn', name: 'Harvest Corn', emoji: '🌽' },
+            { id: 'leaf_maple', name: 'Maple Leaf', emoji: '🍁' },
+            { id: 'leaf_fallen', name: 'Autumn Leaves', emoji: '🍂' },
+            { id: 'acorn', name: 'Acorn', emoji: '🌰' },
+            { id: 'sunflower', name: 'Sunflower', emoji: '🌻' },
+            { id: 'apple', name: 'Red Apple', emoji: '🍎' },
+            { id: 'bread', name: 'Warm Bread', emoji: '🍞' },
+            { id: 'carrot', name: 'Carrot', emoji: '🥕' },
+            { id: 'potato', name: 'Sweet Potato', emoji: '🍠' },
+            { id: 'squirrel', name: 'Squirrel', emoji: '🐿️' },
+            { id: 'owl', name: 'Wise Owl', emoji: '🦉' },
+            { id: 'fox', name: 'Autumn Fox', emoji: '🦊' },
+            { id: 'hat', name: 'Pilgrim Hat', svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="80" rx="44" ry="12" fill="#292524"/><path d="M24 80 L30 22 Q50 15 70 22 L76 80 Z" fill="#44403C"/><rect x="27" y="62" width="46" height="12" fill="#D97706"/><rect x="40" y="59" width="20" height="18" rx="3" fill="none" stroke="#FBBF24" stroke-width="5"/></svg>` },
+            { id: 'cornucopia', name: 'Horn of Plenty', svg: `<svg viewBox="0 0 100 100"><path d="M15 70 Q25 20 85 35 Q75 80 25 82 Z" fill="#B45309" stroke="#78350F" stroke-width="3"/><ellipse cx="75" cy="56" rx="16" ry="22" fill="#451A03"/><circle cx="78" cy="48" r="10" fill="#EA580C"/><circle cx="84" cy="60" r="9" fill="#DC2626"/><circle cx="72" cy="64" r="9" fill="#FACC15"/></svg>` },
+            { id: 'heart', name: 'Thankful Heart', emoji: '🧡' }
+        ];
+        const STICKER_BY_ID = Object.fromEntries(STICKERS.map(s => [s.id, s]));
+
+        const SCENES = [
+            { id: 'meadow', name: 'Autumn Meadow', bgStyle: 'background: linear-gradient(to bottom, #BAE6FD 0%, #FEF3C7 62%, #D97706 62%, #B45309 100%);' },
+            { id: 'sunset', name: 'Harvest Sunset', bgStyle: 'background: linear-gradient(to bottom, #F97316 0%, #FDE047 58%, #92400E 58%, #78350F 100%);' },
+            { id: 'table', name: 'Feast Table', bgStyle: 'background: linear-gradient(to bottom, #FEF3C7 0%, #FDE68A 55%, #9A3412 55%, #7C2D12 100%);' },
+            { id: 'forest', name: 'Cozy Woods', bgStyle: 'background: linear-gradient(to bottom, #FDBA74 0%, #FED7AA 60%, #65A30D 60%, #4D7C0F 100%);' },
+            { id: 'night', name: 'Starry Harvest', bgStyle: 'background: linear-gradient(to bottom, #1E1B4B 0%, #312E81 62%, #78350F 62%, #451A03 100%);' },
+            { id: 'quilt', name: 'Warm Plaid', bgStyle: 'background-color: #FEF3C7; background-image: repeating-linear-gradient(45deg, rgba(245, 158, 11, 0.18) 0, rgba(245, 158, 11, 0.18) 20px, transparent 20px, transparent 40px), repeating-linear-gradient(-45deg, rgba(220, 38, 38, 0.12) 0, rgba(220, 38, 38, 0.12) 20px, transparent 20px, transparent 40px);' }
+        ];
+
+        const SOUNDS = [
+            { id: 'gobble', name: 'Turkey Gobble', icon: '🦃' },
+            { id: 'boing', name: 'Silly Boing', icon: '🦘' },
+            { id: 'tada', name: 'Ta-Da Fanfare', icon: '🎺' },
+            { id: 'crunch', name: 'Leaf Crunch', icon: '🍂' },
+            { id: 'pop', name: 'Happy Pop', icon: '🎈' },
+            { id: 'chime', name: 'Magic Chime', icon: '✨' }
+        ];
+
+        const STORY_IDEAS = [
+            'Make the pie disappear one bite at a time!',
+            'Make a turkey waddle across the meadow. Turn it a little on each slide!',
+            'Make leaves fall from the top of the stage to the ground.',
+            'Make a squirrel sneak up and take the acorn.',
+            'Fill the feast table with one new food on every slide.',
+            'Make the pumpkin grow bigger and bigger, then say "Ta-da!"',
+            'Make the owl fly across the Starry Harvest sky.',
+            'Make a fox and a turkey become friends. What do they say?',
+            'Show something you are thankful for and add a Thankful Heart.'
+        ];
+
+        const HOLD_NAMES = { 1: 'Normal', 2: 'Longer', 3: 'Longest' };
+        const SAVE_KEY = 'tsm_movie_v1';
+        const READ_KEY = 'tsm_read_aloud';
+        const CODE_PREFIX = 'TSM1.';
+
+        // --- 2. APPLICATION STATE ---
+        let slides = [];
+        let currentSlideIndex = 0;
+        let selectedItemId = null;
+        let currentTextStyle = 'bubble';
+        let movieTitle = '';
+        let isExample = false;
+        let ideaText = '';
+        let undoStack = [];
+        let readAloud = false;
+
+        // Movie Playback State
+        let isPlayingMovie = false;
+        let movieFrameIndex = 0;
+        let movieSpeedMs = 650;
+        let movieTimer = null;
+
+        function generateId() {
+            return 'id_' + Math.random().toString(36).slice(2, 11);
+        }
+
+        function blankSlide(sceneId) {
+            return { id: generateId(), sceneId: sceneId || 'meadow', soundId: null, hold: 1, items: [] };
+        }
+
+        function stickerItem(stickerId, x, y, extra) {
+            return Object.assign({ id: generateId(), type: 'sticker', stickerId, x, y, scale: 1, flipX: 1, rot: 0 }, extra || {});
+        }
+
+        function textItem(text, style, x, y, extra) {
+            return Object.assign({ id: generateId(), type: 'text', text, style, x, y, scale: 1, flipX: 1, rot: 0 }, extra || {});
+        }
+
+        function buildExampleMovie() {
+            return [
+                {
+                    id: generateId(), sceneId: 'meadow', soundId: 'gobble', hold: 2,
+                    items: [
+                        stickerItem('sunflower', 10, 66),
+                        stickerItem('pie', 86, 72),
+                        stickerItem('turkey', 20, 68, { flipX: -1 }),
+                        textItem('Turkey Wants Pie!', 'banner', 50, 16)
+                    ]
+                },
+                {
+                    id: generateId(), sceneId: 'meadow', soundId: null, hold: 1,
+                    items: [
+                        stickerItem('sunflower', 10, 66),
+                        stickerItem('pie', 86, 72),
+                        stickerItem('turkey', 43, 60, { flipX: -1, rot: 15 }),
+                        textItem('Gobble Gobble!', 'bubble', 50, 32)
+                    ]
+                },
+                {
+                    id: generateId(), sceneId: 'meadow', soundId: 'tada', hold: 2,
+                    items: [
+                        stickerItem('sunflower', 10, 66),
+                        stickerItem('pie', 86, 72),
+                        stickerItem('turkey', 68, 68, { flipX: -1 }),
+                        textItem('Yummy Pie!', 'bubble', 74, 40)
+                    ]
+                }
+            ];
+        }
+
+        // --- 3. SAVING, LOADING & MOVIE CODES ---
+        function round(n) { return Math.round(n * 100) / 100; }
+
+        function toCompact() {
+            return {
+                v: 1,
+                t: movieTitle,
+                e: isExample ? 1 : 0,
+                s: slides.map(s => ({
+                    c: s.sceneId,
+                    a: s.soundId,
+                    h: s.hold,
+                    i: s.items.map(it => it.type === 'sticker'
+                        ? ['s', it.stickerId, round(it.x), round(it.y), it.scale, it.flipX, it.rot]
+                        : ['t', it.text, it.style === 'banner' ? 'n' : 'b', round(it.x), round(it.y), it.scale, it.flipX, it.rot])
+                }))
+            };
+        }
+
+        function num(v, min, max, fallback) {
+            return (typeof v === 'number' && isFinite(v)) ? Math.max(min, Math.min(max, v)) : fallback;
+        }
+
+        function parseItem(a) {
+            if (!Array.isArray(a)) return null;
+            if (a[0] === 's' && STICKER_BY_ID[a[1]]) {
+                return stickerItem(a[1], num(a[2], 4, 96, 50), num(a[3], 6, 94, 50), {
+                    scale: num(a[4], 0.4, 2.6, 1), flipX: a[5] === -1 ? -1 : 1, rot: num(a[6], -360, 360, 0)
+                });
+            }
+            if (a[0] === 't' && typeof a[1] === 'string' && a[1].trim()) {
+                return textItem(a[1].slice(0, 40), a[2] === 'n' ? 'banner' : 'bubble', num(a[3], 4, 96, 50), num(a[4], 6, 94, 25), {
+                    scale: num(a[5], 0.4, 2.6, 1), flipX: a[6] === -1 ? -1 : 1, rot: num(a[7], -360, 360, 0)
+                });
+            }
+            return null;
+        }
+
+        // Reads a saved movie and checks every value, so a broken code can't break the studio.
+        function fromCompact(obj) {
+            if (!obj || !Array.isArray(obj.s) || obj.s.length === 0) throw new Error('No slides');
+            const loaded = obj.s.slice(0, 150).map(s => ({
+                id: generateId(),
+                sceneId: SCENES.some(x => x.id === s.c) ? s.c : 'meadow',
+                soundId: SOUNDS.some(x => x.id === s.a) ? s.a : null,
+                hold: [1, 2, 3].includes(s.h) ? s.h : 1,
+                items: (Array.isArray(s.i) ? s.i : []).slice(0, 60).map(parseItem).filter(Boolean)
+            }));
+            return {
+                slides: loaded,
+                title: typeof obj.t === 'string' ? obj.t.slice(0, 30) : '',
+                isExample: obj.e === 1
+            };
+        }
+
+        function encodeMovie() {
+            const bytes = new TextEncoder().encode(JSON.stringify(toCompact()));
+            let bin = '';
+            bytes.forEach(b => { bin += String.fromCharCode(b); });
+            return CODE_PREFIX + btoa(bin);
+        }
+
+        function decodeMovie(code) {
+            const clean = String(code).replace(/\s+/g, '');
+            if (!clean.startsWith(CODE_PREFIX)) throw new Error('Not a movie code');
+            const bin = atob(clean.slice(CODE_PREFIX.length));
+            const bytes = Uint8Array.from(bin, ch => ch.charCodeAt(0));
+            return fromCompact(JSON.parse(new TextDecoder().decode(bytes)));
+        }
+
+        let storageWorks = true;
+        function saveLocal() {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(toCompact()));
+                storageWorks = true;
+            } catch (err) {
+                storageWorks = false;
+            }
+            updateAutosaveNote();
+        }
+
+        function loadLocal() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (!raw) return false;
+                const data = fromCompact(JSON.parse(raw));
+                slides = data.slides;
+                movieTitle = data.title;
+                isExample = data.isExample;
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function updateAutosaveNote() {
+            const note = document.getElementById('autosave-note');
+            if (storageWorks) {
+                note.textContent = '✅ Your movie saves by itself on this computer.';
+                note.className = 'text-sm font-bold text-emerald-800 bg-emerald-50 rounded-2xl px-3 py-2';
+            } else {
+                note.textContent = '⚠️ This computer can\'t save your movie. Copy your movie code to keep it!';
+                note.className = 'text-sm font-bold text-rose-800 bg-rose-50 rounded-2xl px-3 py-2';
+            }
+        }
+
+        // --- 4. UNDO ---
+        function pushUndo() {
+            undoStack.push(JSON.stringify({ slides, currentSlideIndex, movieTitle, isExample }));
+            if (undoStack.length > 60) undoStack.shift();
+            document.getElementById('btn-undo').disabled = false;
+        }
+
+        function undo() {
+            if (undoStack.length === 0) {
+                showToast('Nothing to undo!', '↩️');
+                return;
+            }
+            const prev = JSON.parse(undoStack.pop());
+            slides = prev.slides;
+            currentSlideIndex = Math.min(prev.currentSlideIndex, slides.length - 1);
+            movieTitle = prev.movieTitle;
+            isExample = prev.isExample;
+            selectedItemId = null;
+            document.getElementById('btn-undo').disabled = undoStack.length === 0;
+            refresh();
+            showToast('Undone!', '↩️');
+        }
+
+        // Redraw everything and save
+        function refresh() {
+            renderCurrentSlide();
+            renderFilmstrip();
+            renderIdeaBar();
+            saveLocal();
+        }
+
+        // --- 5. SOUND SYNTHESIZER (Tone.js) ---
+        function disposeLater(node, ms) {
+            setTimeout(() => { try { node.dispose(); } catch (err) { /* already gone */ } }, ms);
+        }
+
+        async function playSoundEffect(soundId) {
+            if (!soundId) return;
+            try {
+                if (Tone.context.state !== 'running') {
+                    await Tone.start();
+                }
+                const now = Tone.now();
+
+                if (soundId === 'gobble') {
+                    const synth = new Tone.Synth({
+                        oscillator: { type: 'sawtooth' },
+                        envelope: { attack: 0.02, decay: 0.1, sustain: 0.4, release: 0.15 }
+                    }).toDestination();
+                    ['G4', 'E4', 'A4', 'F4', 'G4', 'D4'].forEach((note, idx) => {
+                        synth.triggerAttackRelease(note, '32n', now + idx * 0.065);
+                    });
+                    disposeLater(synth, 2000);
+                } else if (soundId === 'boing') {
+                    const synth = new Tone.Synth({
+                        oscillator: { type: 'sine' },
+                        envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.2 }
+                    }).toDestination();
+                    synth.triggerAttack('C3', now);
+                    synth.frequency.exponentialRampToValueAtTime(520, now + 0.25);
+                    synth.triggerRelease(now + 0.35);
+                    disposeLater(synth, 2000);
+                } else if (soundId === 'tada') {
+                    const poly = new Tone.PolySynth(Tone.Synth).toDestination();
+                    poly.triggerAttackRelease(['C4', 'E4', 'G4'], '16n', now);
+                    poly.triggerAttackRelease(['C4', 'E4', 'G4', 'C5'], '4n', now + 0.18);
+                    disposeLater(poly, 3000);
+                } else if (soundId === 'crunch') {
+                    const noise = new Tone.NoiseSynth({
+                        noise: { type: 'pink' },
+                        envelope: { attack: 0.01, decay: 0.12, sustain: 0, release: 0.05 }
+                    }).toDestination();
+                    noise.triggerAttackRelease('16n', now);
+                    noise.triggerAttackRelease('16n', now + 0.1);
+                    disposeLater(noise, 2000);
+                } else if (soundId === 'pop') {
+                    const synth = new Tone.MembraneSynth().toDestination();
+                    synth.triggerAttackRelease('G4', '32n', now);
+                    disposeLater(synth, 2000);
+                } else if (soundId === 'chime') {
+                    const synth = new Tone.Synth({
+                        oscillator: { type: 'triangle' },
+                        envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 }
+                    }).toDestination();
+                    ['C5', 'E5', 'G5', 'B5', 'C6'].forEach((n, i) => {
+                        synth.triggerAttackRelease(n, '32n', now + i * 0.06);
+                    });
+                    disposeLater(synth, 2000);
+                }
+            } catch (err) {
+                console.warn('Audio playback skipped:', err);
+            }
+        }
+
+        // --- 6. READ TO ME (speaks button names for early readers) ---
+        const canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+
+        function cleanForSpeech(text) {
+            return String(text)
+                .replace(/[\p{Extended_Pictographic}️‍↺↻◀▶✕]/gu, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function speak(text, interrupt) {
+            if (!readAloud || !canSpeak) return;
+            const words = cleanForSpeech(text);
+            if (!words) return;
+            try {
+                if (interrupt) window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(words);
+                u.rate = 0.9;
+                window.speechSynthesis.speak(u);
+            } catch (err) { /* speech not available */ }
+        }
+
+        function setReadAloud(on) {
+            readAloud = on;
+            document.getElementById('read-label').textContent = on ? 'Read to Me: On' : 'Read to Me: Off';
+            const btn = document.getElementById('btn-read');
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            btn.classList.toggle('ring-4', on);
+            btn.classList.toggle('ring-white', on);
+            try { localStorage.setItem(READ_KEY, on ? '1' : '0'); } catch (err) { /* fine */ }
+            if (!on && canSpeak) window.speechSynthesis.cancel();
+        }
+
+        // --- 7. RENDERING TOOLBOXES ---
+        function renderStickerToolbox() {
+            const grid = document.getElementById('sticker-grid');
+            grid.innerHTML = '';
+            document.getElementById('sticker-count').textContent = `${STICKERS.length} Fun Items`;
+            STICKERS.forEach(sticker => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-bounce bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 rounded-2xl p-2 flex flex-col items-center justify-center gap-1 shadow-sm min-w-0';
+                btn.title = sticker.name;
+                btn.dataset.say = sticker.name;
+                btn.innerHTML = `
+                    <div class="toolbox-svg text-3xl sm:text-4xl leading-none flex items-center justify-center h-10">
+                        ${sticker.svg ? sticker.svg : sticker.emoji}
+                    </div>
+                    <span class="text-[11px] font-bold text-amber-900 truncate w-full text-center">${sticker.name}</span>
+                `;
+                btn.onclick = () => addStickerToSlide(sticker);
+                grid.appendChild(btn);
+            });
+        }
+
+        function renderSceneToolbox() {
+            const grid = document.getElementById('scene-grid');
+            grid.innerHTML = '';
+            SCENES.forEach(scene => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-bounce rounded-2xl overflow-hidden border-3 border-amber-300 shadow-sm flex flex-col';
+                btn.dataset.say = scene.name;
+                btn.innerHTML = `
+                    <div class="w-full h-14" style="${scene.bgStyle}"></div>
+                    <div class="bg-amber-50 py-1.5 px-2 text-xs font-extrabold text-amber-950 text-center w-full">
+                        ${scene.name}
+                    </div>
+                `;
+                btn.onclick = () => {
+                    pushUndo();
+                    slides[currentSlideIndex].sceneId = scene.id;
+                    refresh();
+                    showToast(`Scene changed to ${scene.name}!`, '🍂');
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        function renderSoundModalOptions() {
+            const grid = document.getElementById('sound-options-grid');
+            grid.innerHTML = '';
+            SOUNDS.forEach(sound => {
+                const btn = document.createElement('button');
+                btn.id = `sound-opt-${sound.id}`;
+                btn.className = 'btn-bounce bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 transition';
+                btn.dataset.say = sound.name;
+                btn.innerHTML = `
+                    <span class="text-3xl">${sound.icon}</span>
+                    <span class="text-xs sm:text-sm font-extrabold text-indigo-950">${sound.name}</span>
+                `;
+                btn.onclick = () => {
+                    playSoundEffect(sound.id);
+                    selectSlideSound(sound.id);
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        // --- 8. ADDING & CHANGING ITEMS ON STAGE ---
+        function addStickerToSlide(sticker) {
+            pushUndo();
+            const slide = slides[currentSlideIndex];
+            // Slight random offset near center so multiple items don't stack invisibly
+            const newItem = stickerItem(sticker.id, 50 + (Math.random() * 14 - 7), 50 + (Math.random() * 14 - 7));
+            slide.items.push(newItem);
+            selectedItemId = newItem.id;
+            playSoundEffect('pop');
+            refresh();
+        }
+
+        function addTextToSlide() {
+            const input = document.getElementById('text-input');
+            const rawText = input.value.trim();
+            if (!rawText) {
+                showToast('Type some words first!', '✏️');
+                input.focus();
+                return;
+            }
+            pushUndo();
+            const newItem = textItem(rawText, currentTextStyle, 50, 25);
+            slides[currentSlideIndex].items.push(newItem);
+            selectedItemId = newItem.id;
+            input.value = '';
+            playSoundEffect('pop');
+            refresh();
+        }
+
+        function getSelectedItem() {
+            return slides[currentSlideIndex].items.find(i => i.id === selectedItemId) || null;
+        }
+
+        function needSelection() {
+            const item = getSelectedItem();
+            if (!item) showToast('Tap an item on the stage first!', '👆');
+            return item;
+        }
+
+        function resizeSelected(delta) {
+            const item = needSelection();
+            if (!item) return;
+            pushUndo();
+            item.scale = Math.max(0.4, Math.min(2.6, +(item.scale + delta).toFixed(2)));
+            refresh();
+        }
+
+        function rotateSelected(deg) {
+            const item = needSelection();
+            if (!item) return;
+            pushUndo();
+            item.rot = (item.rot + deg) % 360;
+            refresh();
+        }
+
+        function flipSelected() {
+            const item = needSelection();
+            if (!item) return;
+            if (item.type === 'text' && item.style === 'banner') {
+                showToast('Title banners look the same both ways. Try Turn!', '↔️');
+                return;
+            }
+            pushUndo();
+            item.flipX = item.flipX * -1;
+            refresh();
+            if (item.type === 'text') showToast('The speech bubble now points the other way!', '💬');
+        }
+
+        function layerSelected(where) {
+            const item = needSelection();
+            if (!item) return;
+            const items = slides[currentSlideIndex].items;
+            const idx = items.indexOf(item);
+            if ((where === 'front' && idx === items.length - 1) || (where === 'back' && idx === 0)) {
+                showToast(where === 'front' ? 'It is already in front!' : 'It is already in the back!', '👍');
+                return;
+            }
+            pushUndo();
+            items.splice(idx, 1);
+            if (where === 'front') items.push(item); else items.unshift(item);
+            refresh();
+        }
+
+        function deleteSelected() {
+            const item = needSelection();
+            if (!item) return;
+            pushUndo();
+            const slide = slides[currentSlideIndex];
+            slide.items = slide.items.filter(i => i.id !== selectedItemId);
+            selectedItemId = null;
+            refresh();
+            showToast('Item removed! Tap Undo to bring it back.', '🗑️');
+        }
+
+        function nudgeSelected(dx, dy, isRepeat) {
+            const item = getSelectedItem();
+            if (!item) return;
+            if (!isRepeat) pushUndo();
+            item.x = Math.max(4, Math.min(96, item.x + dx));
+            item.y = Math.max(6, Math.min(94, item.y + dy));
+            refresh();
+        }
+
+        // --- 9. RENDERING STAGE, ONION SKIN & FILMSTRIP ---
+        function itemLabel(item) {
+            return item.type === 'sticker' ? STICKER_BY_ID[item.stickerId].name : `"${item.text}"`;
+        }
+
+        function updateSelectedLabel() {
+            const selectedItem = getSelectedItem();
+            document.getElementById('selected-label').textContent = selectedItem ? itemLabel(selectedItem) : 'Tap an item on stage';
+        }
+
+        // Select without rebuilding the stage, so a drag can carry on with the same element
+        function selectItem(id) {
+            selectedItemId = id;
+            document.querySelectorAll('#stage-items .stage-item').forEach(el => {
+                el.classList.toggle('selected', el.dataset.id === id);
+            });
+            updateSelectedLabel();
+        }
+
+        function renderCurrentSlide() {
+            const slide = slides[currentSlideIndex];
+            const scene = SCENES.find(s => s.id === slide.sceneId) || SCENES[0];
+
+            document.getElementById('slide-counter').textContent = `${currentSlideIndex + 1} of ${slides.length}`;
+            const soundBadge = document.getElementById('current-sound-badge');
+            if (slide.soundId) {
+                const sObj = SOUNDS.find(s => s.id === slide.soundId);
+                soundBadge.textContent = `${sObj.icon} ${sObj.name}`;
+            } else {
+                soundBadge.textContent = 'No sound on this slide';
+            }
+
+            document.getElementById('stage-background').setAttribute('style', scene.bgStyle);
+
+            // Onion Skin (Ghost Helper of previous slide)
+            const onionLayer = document.getElementById('onion-layer');
+            onionLayer.innerHTML = '';
+            if (document.getElementById('toggle-onion').checked && currentSlideIndex > 0) {
+                slides[currentSlideIndex - 1].items.forEach(item => {
+                    const ghostEl = createItemDOM(item, false);
+                    ghostEl.classList.add('onion');
+                    onionLayer.appendChild(ghostEl);
+                });
+            }
+
+            // Active Stage Items
+            const itemsLayer = document.getElementById('stage-items');
+            itemsLayer.innerHTML = '';
+            document.getElementById('empty-hint').style.display =
+                (slide.items.length === 0 && currentSlideIndex === 0) ? 'flex' : 'none';
+
+            slide.items.forEach(item => {
+                const el = createItemDOM(item, true);
+                if (item.id === selectedItemId) el.classList.add('selected');
+                itemsLayer.appendChild(el);
+            });
+
+            updateSelectedLabel();
+
+            // Slide tools
+            document.getElementById('hold-label').textContent = HOLD_NAMES[slide.hold] || 'Normal';
+            document.getElementById('btn-hold').dataset.say = `Stay on screen: ${HOLD_NAMES[slide.hold] || 'Normal'}`;
+            document.getElementById('btn-move-earlier').disabled = currentSlideIndex === 0;
+            document.getElementById('btn-move-later').disabled = currentSlideIndex === slides.length - 1;
+        }
+
+        function createItemDOM(item, interactive) {
+            const el = document.createElement('div');
+            el.className = interactive ? 'stage-item' : 'stage-item static';
+            el.dataset.id = item.id;
+            el.style.left = `${item.x}%`;
+            el.style.top = `${item.y}%`;
+
+            const base = `translate(-50%, -50%) rotate(${item.rot || 0}deg) scale(${item.scale})`;
+
+            if (item.type === 'sticker') {
+                const sticker = STICKER_BY_ID[item.stickerId];
+                el.style.transform = `${base} scaleX(${item.flipX})`;
+                el.innerHTML = sticker.svg
+                    ? `<div class="sticker-svg">${sticker.svg}</div>`
+                    : `<div class="sticker-emoji">${sticker.emoji}</div>`;
+            } else {
+                // Words are never mirrored. Flip moves the speech bubble's tail instead.
+                el.style.transform = base;
+                el.innerHTML = item.style === 'bubble'
+                    ? `<div class="bubble${item.flipX === -1 ? ' tail-right' : ''}">${escapeHTML(item.text)}</div>`
+                    : `<div class="banner">${escapeHTML(item.text)}</div>`;
+            }
+
+            if (interactive) attachDragHandlers(el, item);
+            return el;
+        }
+
+        // Mouse, touch and pen dragging. The item stays under the finger where it was grabbed.
+        function attachDragHandlers(el, item) {
+            const stage = document.getElementById('stage-container');
+
+            el.addEventListener('pointerdown', (e) => {
+                if (e.button > 0) return;
+                e.preventDefault();
+                selectItem(item.id);
+
+                const rect = stage.getBoundingClientRect();
+                const grabX = e.clientX - (rect.left + (item.x / 100) * rect.width);
+                const grabY = e.clientY - (rect.top + (item.y / 100) * rect.height);
+                let moved = false;
+
+                try { el.setPointerCapture(e.pointerId); } catch (err) { /* fine */ }
+
+                const onMove = (ev) => {
+                    if (ev.pointerId !== e.pointerId) return;
+                    if (!moved) {
+                        if (Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY) < 3) return;
+                        pushUndo();
+                        moved = true;
+                    }
+                    let newX = ((ev.clientX - grabX - rect.left) / rect.width) * 100;
+                    let newY = ((ev.clientY - grabY - rect.top) / rect.height) * 100;
+                    newX = Math.max(4, Math.min(96, newX));
+                    newY = Math.max(6, Math.min(94, newY));
+                    item.x = newX;
+                    item.y = newY;
+                    el.style.left = `${newX}%`;
+                    el.style.top = `${newY}%`;
+                };
+
+                const onUp = (ev) => {
+                    if (ev.pointerId !== e.pointerId) return;
+                    el.removeEventListener('pointermove', onMove);
+                    el.removeEventListener('pointerup', onUp);
+                    el.removeEventListener('pointercancel', onUp);
+                    if (moved) {
+                        renderFilmstrip();
+                        saveLocal();
+                    }
+                };
+
+                el.addEventListener('pointermove', onMove);
+                el.addEventListener('pointerup', onUp);
+                el.addEventListener('pointercancel', onUp);
+            });
+        }
+
+        function renderFilmstrip() {
+            const strip = document.getElementById('filmstrip');
+            const keepScroll = strip.scrollLeft;
+            strip.innerHTML = '';
+            let activeCard = null;
+
+            slides.forEach((slide, idx) => {
+                const scene = SCENES.find(s => s.id === slide.sceneId) || SCENES[0];
+                const isActive = idx === currentSlideIndex;
+
+                const card = document.createElement('button');
+                card.setAttribute('style', scene.bgStyle);
+                card.className = `scene-box filmstrip-frame shrink-0 w-32 sm:w-36 aspect-video rounded-2xl overflow-hidden cursor-pointer border-3 ${isActive ? 'active border-orange-600' : 'border-amber-300 opacity-85 hover:opacity-100'}`;
+                card.dataset.say = `Slide ${idx + 1}`;
+                card.setAttribute('aria-label', `Slide ${idx + 1}`);
+                if (isActive) {
+                    card.setAttribute('aria-current', 'true');
+                    activeCard = card;
+                }
+
+                // Same drawing as the stage, just smaller
+                slide.items.forEach(item => card.appendChild(createItemDOM(item, false)));
+
+                const badge = document.createElement('div');
+                badge.className = 'absolute top-1 left-1.5 bg-amber-950/75 text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full';
+                badge.textContent = `#${idx + 1}`;
+                card.appendChild(badge);
+
+                const pills = document.createElement('div');
+                pills.className = 'absolute bottom-1 right-1.5 flex gap-1';
+                if (slide.hold > 1) {
+                    const holdPill = document.createElement('div');
+                    holdPill.className = 'bg-sky-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow';
+                    holdPill.textContent = `⏱️${slide.hold}x`;
+                    pills.appendChild(holdPill);
+                }
+                if (slide.soundId) {
+                    const soundPill = document.createElement('div');
+                    soundPill.className = 'bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow';
+                    soundPill.textContent = '🔊';
+                    pills.appendChild(soundPill);
+                }
+                card.appendChild(pills);
+
+                card.onclick = () => {
+                    currentSlideIndex = idx;
+                    selectedItemId = null;
+                    renderCurrentSlide();
+                    renderFilmstrip();
+                };
+
+                strip.appendChild(card);
+            });
+
+            // Keep the scroll position, then make sure the slide you are on is visible
+            strip.scrollLeft = keepScroll;
+            if (activeCard) {
+                const left = activeCard.offsetLeft - 12;
+                const right = activeCard.offsetLeft + activeCard.offsetWidth + 12;
+                if (left < strip.scrollLeft) strip.scrollLeft = left;
+                else if (right > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = right - strip.clientWidth;
+            }
+        }
+
+        // --- 10. SLIDE MANAGEMENT ---
+        function duplicateCurrentSlide() {
+            pushUndo();
+            const current = slides[currentSlideIndex];
+            let newSelectedId = null;
+            // Deep clone items so moving them on the new slide doesn't alter the previous slide
+            const clonedItems = current.items.map(item => {
+                const copy = { ...item, id: generateId() };
+                if (item.id === selectedItemId) newSelectedId = copy.id;
+                return copy;
+            });
+
+            slides.splice(currentSlideIndex + 1, 0, {
+                id: generateId(),
+                sceneId: current.sceneId,
+                soundId: null, // Sound doesn't auto-repeat unless chosen, so it's not noisy!
+                hold: 1,
+                items: clonedItems
+            });
+            currentSlideIndex++;
+            selectedItemId = newSelectedId; // keep the same sticker selected, ready to move
+            playSoundEffect('crunch');
+            refresh();
+            showToast(`Slide ${currentSlideIndex + 1} created! Move your items!`, '📸');
+        }
+
+        function addBlankSlide() {
+            pushUndo();
+            slides.splice(currentSlideIndex + 1, 0, blankSlide(slides[currentSlideIndex].sceneId));
+            currentSlideIndex++;
+            selectedItemId = null;
+            refresh();
+            showToast(`Added blank Slide ${currentSlideIndex + 1}!`, '📄');
+        }
+
+        function deleteCurrentSlide() {
+            pushUndo();
+            selectedItemId = null;
+            if (slides.length <= 1) {
+                slides[0].items = [];
+                slides[0].soundId = null;
+                slides[0].hold = 1;
+                refresh();
+                showToast('Slide 1 cleared! Tap Undo to bring it back.', '🧹');
+                return;
+            }
+            slides.splice(currentSlideIndex, 1);
+            if (currentSlideIndex >= slides.length) currentSlideIndex = slides.length - 1;
+            refresh();
+            showToast('Slide deleted! Tap Undo to bring it back.', '🗑️');
+        }
+
+        function moveSlide(dir) {
+            const target = currentSlideIndex + dir;
+            if (target < 0 || target >= slides.length) return;
+            pushUndo();
+            const [slide] = slides.splice(currentSlideIndex, 1);
+            slides.splice(target, 0, slide);
+            currentSlideIndex = target;
+            refresh();
+            showToast(`This is now Slide ${target + 1}!`, '🎞️');
+        }
+
+        function cycleHold() {
+            pushUndo();
+            const slide = slides[currentSlideIndex];
+            slide.hold = slide.hold >= 3 ? 1 : slide.hold + 1;
+            refresh();
+            const msg = { 1: 'This slide stays the normal time.', 2: 'This slide stays 2 times longer!', 3: 'This slide stays 3 times longer!' };
+            showToast(msg[slide.hold], '⏱️');
+        }
+
+        function startNewMovie() {
+            pushUndo();
+            slides = [blankSlide('meadow')];
+            currentSlideIndex = 0;
+            selectedItemId = null;
+            movieTitle = '';
+            isExample = false;
+            ideaText = '';
+            document.getElementById('movie-title').value = '';
+            refresh();
+            showToast('New movie started! Tap Undo to get the old one back.', '🆕');
+        }
+
+        // --- 11. STORY IDEAS & EXAMPLE NOTICE ---
+        function renderIdeaBar() {
+            const bar = document.getElementById('idea-bar');
+            const text = document.getElementById('idea-text');
+            const startOwn = document.getElementById('btn-start-own');
+            if (ideaText) {
+                text.textContent = `💡 Story idea: ${ideaText}`;
+                startOwn.hidden = true;
+                bar.hidden = false;
+            } else if (isExample) {
+                text.textContent = '⭐ This is an example movie. Watch it, change it, or start your own!';
+                startOwn.hidden = false;
+                bar.hidden = false;
+            } else {
+                bar.hidden = true;
+            }
+        }
+
+        function showStoryIdea() {
+            let next = ideaText;
+            while (next === ideaText) {
+                next = STORY_IDEAS[Math.floor(Math.random() * STORY_IDEAS.length)];
+            }
+            ideaText = next;
+            renderIdeaBar();
+            speak(ideaText, false);
+        }
+
+        function dismissIdeaBar() {
+            if (ideaText) {
+                ideaText = '';
+            } else {
+                isExample = false;
+                saveLocal();
+            }
+            renderIdeaBar();
+        }
+
+        // --- 12. MODALS ---
+        function openModal(id) {
+            const m = document.getElementById(id);
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function closeModal(id) {
+            if (id === 'movie-modal') stopMovieLoop();
+            const m = document.getElementById(id);
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        function anyModalOpen() {
+            return Array.from(document.querySelectorAll('.modal')).some(m => !m.classList.contains('hidden'));
+        }
+
+        function openSoundModal() {
+            document.getElementById('modal-slide-num').textContent = currentSlideIndex + 1;
+            highlightSelectedSoundOption();
+            openModal('sound-modal');
+        }
+
+        function selectSlideSound(soundId) {
+            pushUndo();
+            slides[currentSlideIndex].soundId = soundId;
+            highlightSelectedSoundOption();
+            refresh();
+            if (soundId) {
+                const sObj = SOUNDS.find(s => s.id === soundId);
+                showToast(`Added "${sObj.name}" to Slide ${currentSlideIndex + 1}!`, '🔊');
+            } else {
+                showToast(`Removed sound from Slide ${currentSlideIndex + 1}`, '🔇');
+            }
+        }
+
+        function highlightSelectedSoundOption() {
+            const activeSoundId = slides[currentSlideIndex].soundId;
+            SOUNDS.forEach(s => {
+                const btn = document.getElementById(`sound-opt-${s.id}`);
+                if (!btn) return;
+                ['ring-4', 'ring-indigo-500', 'bg-indigo-200'].forEach(c => btn.classList.toggle(c, s.id === activeSoundId));
+            });
+        }
+
+        function openSaveModal() {
+            document.getElementById('movie-title').value = movieTitle;
+            document.getElementById('code-out').value = encodeMovie();
+            document.getElementById('code-in').value = '';
+            updateAutosaveNote();
+            openModal('save-modal');
+        }
+
+        async function copyMovieCode() {
+            const box = document.getElementById('code-out');
+            box.value = encodeMovie();
+            try {
+                await navigator.clipboard.writeText(box.value);
+                showToast('Movie code copied! Paste it where your teacher says.', '📋');
+            } catch (err) {
+                box.focus();
+                box.select();
+                showToast('Now press Ctrl and C together to copy your code.', '📋');
+            }
+        }
+
+        function openMovieCode() {
+            const input = document.getElementById('code-in');
+            if (!input.value.trim()) {
+                showToast('Paste a movie code in the box first!', '📂');
+                input.focus();
+                return;
+            }
+            let data;
+            try {
+                data = decodeMovie(input.value);
+            } catch (err) {
+                showToast('That code did not work. Copy the whole code and try again.', '🤔');
+                return;
+            }
+            pushUndo();
+            slides = data.slides;
+            movieTitle = data.title;
+            isExample = false;
+            ideaText = '';
+            currentSlideIndex = 0;
+            selectedItemId = null;
+            closeModal('save-modal');
+            refresh();
+            showToast('Movie opened! Tap Undo to go back to your old one.', '🎉');
+        }
+
+        // --- 13. STOP MOTION MOVIE THEATER ---
+        function openMovieTheater(startIdx) {
+            document.getElementById('theater-title').textContent = movieTitle || 'Thanksgiving Movie Theater';
+            openModal('movie-modal');
+            movieFrameIndex = Math.max(0, Math.min(slides.length - 1, startIdx || 0));
+            isPlayingMovie = true;
+            updatePlayPauseButton();
+            renderMovieFrame(movieFrameIndex);
+            scheduleNextFrame();
+        }
+
+        // Each slide waits for the current speed times its "stay on screen" setting
+        function scheduleNextFrame() {
+            stopMovieLoop();
+            if (!isPlayingMovie) return;
+            const hold = slides[movieFrameIndex].hold || 1;
+            movieTimer = setTimeout(() => {
+                movieFrameIndex = (movieFrameIndex + 1) % slides.length;
+                renderMovieFrame(movieFrameIndex);
+                scheduleNextFrame();
+            }, movieSpeedMs * hold);
+        }
+
+        function stopMovieLoop() {
+            if (movieTimer) {
+                clearTimeout(movieTimer);
+                movieTimer = null;
+            }
+        }
+
+        function renderMovieFrame(idx) {
+            const slide = slides[idx];
+            const scene = SCENES.find(s => s.id === slide.sceneId) || SCENES[0];
+
+            document.getElementById('movie-frame-indicator').textContent = `${idx + 1} / ${slides.length}`;
+            document.getElementById('movie-screen-bg').setAttribute('style', scene.bgStyle);
+
+            const itemsContainer = document.getElementById('movie-screen-items');
+            itemsContainer.innerHTML = '';
+            slide.items.forEach(item => itemsContainer.appendChild(createItemDOM(item, false)));
+
+            const soundBadge = document.getElementById('movie-sound-indicator');
+            if (slide.soundId) {
+                const sObj = SOUNDS.find(s => s.id === slide.soundId);
+                document.getElementById('movie-sound-name').textContent = sObj.name;
+                soundBadge.classList.remove('hidden');
+                soundBadge.classList.add('flex', 'sound-playing');
+                playSoundEffect(slide.soundId);
+            } else {
+                soundBadge.classList.add('hidden');
+                soundBadge.classList.remove('flex', 'sound-playing');
+            }
+        }
+
+        function toggleMoviePlayPause() {
+            isPlayingMovie = !isPlayingMovie;
+            updatePlayPauseButton();
+            scheduleNextFrame();
+        }
+
+        function updatePlayPauseButton() {
+            document.getElementById('play-pause-icon').textContent = isPlayingMovie ? '⏸️' : '▶️';
+            document.getElementById('play-pause-text').textContent = isPlayingMovie ? 'Pause' : 'Play';
+        }
+
+        function setMovieSpeed(ms) {
+            movieSpeedMs = ms;
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                const on = Number(btn.dataset.ms) === ms;
+                btn.classList.toggle('bg-amber-500', on);
+                btn.classList.toggle('text-amber-950', on);
+                btn.classList.toggle('bg-stone-700', !on);
+                btn.classList.toggle('text-gray-200', !on);
+            });
+            scheduleNextFrame(); // does nothing while paused; Play picks up the new speed
+        }
+
+        // --- 14. UI HELPERS & EVENT LISTENERS ---
+        function switchTab(tabName) {
+            ['stickers', 'scenes', 'text'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const panel = document.getElementById(`panel-${t}`);
+                if (t === tabName) {
+                    btn.className = 'tab-btn bg-amber-500 text-white font-bold py-2 px-2 rounded-xl shadow text-sm sm:text-base flex items-center justify-center gap-1 transition';
+                    panel.classList.remove('hidden');
+                    panel.classList.add('flex');
+                } else {
+                    btn.className = 'tab-btn text-amber-800 hover:bg-amber-200/60 font-bold py-2 px-2 rounded-xl text-sm sm:text-base flex items-center justify-center gap-1 transition';
+                    panel.classList.add('hidden');
+                    panel.classList.remove('flex');
+                }
+            });
+        }
+
+        function setQuickText(txt) {
+            document.getElementById('text-input').value = txt;
+        }
+
+        function setTextStyle(style) {
+            currentTextStyle = style;
+            const on = 'px-3 py-1 rounded-xl text-sm font-bold bg-orange-500 text-white';
+            const off = 'px-3 py-1 rounded-xl text-sm font-bold bg-amber-100 text-amber-900';
+            document.getElementById('style-bubble').className = style === 'bubble' ? on : off;
+            document.getElementById('style-banner').className = style === 'banner' ? on : off;
+        }
+
+        let toastTimeout = null;
+        function showToast(message, icon = '✨') {
+            const box = document.getElementById('toast-box');
+            document.getElementById('toast-msg').textContent = message;
+            document.getElementById('toast-icon').textContent = icon;
+            box.classList.remove('opacity-0');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => box.classList.add('opacity-0'), 3000);
+            speak(message, false);
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+
+        function setupEventListeners() {
+            const on = (id, handler) => document.getElementById(id).addEventListener('click', handler);
+
+            // Deselect item when tapping an empty part of the stage
+            document.getElementById('stage-container').addEventListener('pointerdown', (e) => {
+                if (!e.target.closest('.stage-item')) selectItem(null);
+            });
+
+            document.getElementById('toggle-onion').addEventListener('change', renderCurrentSlide);
+
+            on('btn-add-text', addTextToSlide);
+            document.getElementById('text-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') addTextToSlide();
+            });
+
+            on('btn-undo', undo);
+            on('btn-idea', showStoryIdea);
+            on('btn-idea-close', dismissIdeaBar);
+            on('btn-start-own', startNewMovie);
+
+            on('btn-duplicate-slide', duplicateCurrentSlide);
+            on('btn-blank-slide', addBlankSlide);
+            on('btn-delete-slide', deleteCurrentSlide);
+            on('btn-move-earlier', () => moveSlide(-1));
+            on('btn-move-later', () => moveSlide(1));
+            on('btn-hold', cycleHold);
+            on('btn-play-here', () => openMovieTheater(currentSlideIndex));
+
+            on('btn-open-sound', openSoundModal);
+
+            on('btn-create-movie', () => openMovieTheater(0));
+            on('btn-close-movie', () => closeModal('movie-modal'));
+            on('btn-movie-play-pause', toggleMoviePlayPause);
+            on('btn-movie-replay', () => openMovieTheater(0));
+
+            on('btn-help', () => openModal('help-modal'));
+            on('btn-read', () => {
+                setReadAloud(!readAloud);
+                speak(readAloud ? 'Read to me is on. Tap any button to hear its name.' : '', true);
+            });
+
+            on('btn-save', openSaveModal);
+            on('btn-copy-code', copyMovieCode);
+            on('btn-open-code', openMovieCode);
+            on('btn-new-movie', () => { closeModal('save-modal'); startNewMovie(); });
+            document.getElementById('movie-title').addEventListener('input', (e) => {
+                movieTitle = e.target.value.trim().slice(0, 30);
+                saveLocal();
+                document.getElementById('code-out').value = encodeMovie();
+            });
+
+            // Tap the dark area around a pop-up to close it
+            document.querySelectorAll('.modal').forEach(m => {
+                m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); });
+            });
+
+            // Read to Me: say the name of any button as it is tapped
+            document.addEventListener('click', (e) => {
+                if (!readAloud) return;
+                const b = e.target.closest('button');
+                if (!b || b.id === 'btn-read') return;
+                speak(b.dataset.say || b.getAttribute('aria-label') || b.textContent, true);
+            }, true);
+
+            // Keyboard helpers
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal').forEach(m => closeModal(m.id));
+                    return;
+                }
+                const tag = e.target.tagName;
+                if (tag === 'INPUT' || tag === 'TEXTAREA' || anyModalOpen()) return;
+
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                    e.preventDefault();
+                    undo();
+                } else if ((e.key === 'Delete' || e.key === 'Backspace') && getSelectedItem()) {
+                    e.preventDefault();
+                    deleteSelected();
+                } else if (e.key.startsWith('Arrow') && getSelectedItem()) {
+                    e.preventDefault();
+                    const step = 1.5;
+                    const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step * 1.6], ArrowDown: [0, step * 1.6] }[e.key];
+                    nudgeSelected(d[0], d[1], e.repeat);
+                }
+            });
+        }
+
+        // --- 15. START ---
+        function init() {
+            document.body.classList.add('min-h-screen', 'flex', 'flex-col', 'text-amber-950');
+            if (!loadLocal()) {
+                // First visit: open with a short example so kids can see how it works
+                slides = buildExampleMovie();
+                isExample = true;
+            }
+            if (!canSpeak) {
+                document.getElementById('btn-read').hidden = true;
+            } else {
+                let saved = '0';
+                try { saved = localStorage.getItem(READ_KEY) || '0'; } catch (err) { /* fine */ }
+                setReadAloud(saved === '1');
+            }
+            renderStickerToolbox();
+            renderSceneToolbox();
+            renderSoundModalOptions();
+            setupEventListeners();
+            renderCurrentSlide();
+            renderFilmstrip();
+            renderIdeaBar();
+            updateAutosaveNote();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+
+</body></html>
